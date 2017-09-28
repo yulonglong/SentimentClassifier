@@ -1,6 +1,18 @@
+import java.util.*;
+import java.io.*;
+import java.net.*;
+import java.nio.file.*;
+
+/*******************************************************************
+ * A class to split the training data into training and validation set
+ * The original dataset in 
+ * http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz
+ * only provides training and test set (no validation)
+ */
 public class Preprocess {
 	public static final String f_currPathStr = Paths.get("").toAbsolutePath().toString();
 	public static final String f_datasetFolder = "/aclImdb";
+	public static final double f_percentageValid = 0.2;
 
 	public static void createValidFolder() {
 		File folderPos =  new File(f_currPathStr + f_datasetFolder + "/valid/pos/");
@@ -19,8 +31,9 @@ public class Preprocess {
 		}
 	}
 
-	public static void randomSampling(int numSamples, String type) {
-		File folderPos = new File(f_currPathStr + f_datasetFolder + "/train/" + type);
+	// Percentage valid is the amount of data to be taken from the training set as the validation set
+	public static void randomSampling(double percentageValid, String type) {
+		File folder = new File(f_currPathStr + f_datasetFolder + "/train/" + type);
 		File[] listOfFiles = folder.listFiles();
 
 		ArrayList<String> filenames = new ArrayList<String>();
@@ -36,14 +49,22 @@ public class Preprocess {
 				}
 			}
 		}
-		// Do some randomization here
-		for (String filename : filenames) {
+		Collections.shuffle(filenames);
+		int indexLimit = (int)(percentageValid * (double) filenames.size());
+		for (int i=0; i<indexLimit; i++) {
+			String filename = filenames.get(i);
 			File source = new File(f_currPathStr + f_datasetFolder + "/train/" + type + "/" + filename + ".txt");
 			File dest = new File(f_currPathStr + f_datasetFolder + "/valid/" + type + "/" + filename + ".txt");
-			copyFileUsingJava7Files(source, dec);
+			copyFileUsingJava7Files(source, dest);
 			System.out.println(filename + " deleted");
-			File toBeDeletedFile = new File (f_currPathStr + f_datasetFolder + "/train/" + type + "/" + filenumber + ".txt");
+			File toBeDeletedFile = new File (f_currPathStr + f_datasetFolder + "/train/" + type + "/" + filename + ".txt");
 			toBeDeletedFile.delete();
 		}
+	}
+
+	public static void main (String[] args) {
+		createValidFolder();
+		randomSampling(f_percentageValid, "pos");
+		randomSampling(f_percentageValid, "neg");
 	}
 }
