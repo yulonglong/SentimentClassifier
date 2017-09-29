@@ -1,1 +1,4 @@
 data/
+*.txt
+*.pyc
+*.h5
