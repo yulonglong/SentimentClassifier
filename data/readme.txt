@@ -1,4 +1,6 @@
-Dataset to be used in this Sentiment Classification Project
+This folder is to contain dataset to be used in this Sentiment Classification Project
+Run the shell script in current directory `run.sh`
+or to do it manually, please refer to the steps below
 
 Steps to download and process the data for training/testing:
 1. Download the imdb dataset from http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz
