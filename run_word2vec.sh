@@ -19,7 +19,7 @@ if [ ! -f word2vec/vectors/imdb_${embedding_size}d.w2v.txt ]; then
         # If combined text file is not present
         if [ ! -f word2vec/vectors/${combined_text_name} ]; then
             # Compile the combine text script
-            g++ combineText4word2vec.cpp -o combineText4word2vec.out
+            g++ word2vec/combineText4word2vec.cpp -o word2vec/combineText4word2vec.out
             # Execute combine text script
             ./word2vec/combineText4word2vec.out data/aclImdb/train/unsup/ word2vec/vectors/${combined_text_name}
         fi
