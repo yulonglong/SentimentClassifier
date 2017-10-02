@@ -201,6 +201,8 @@ def read_dataset_folder(dir_path, maxlen, vocab, tokenize_text, to_lower, thread
     data_x, data_y, filename_y = [], [], []
     num_hit, unk_hit, total = 0., 0., 0.
     maxlen_x = -1
+    total_len = 0
+    num_files = 0
 
     # Reading data in the specified folder
     dir_path_curr = glob.glob(dir_path)
@@ -247,7 +249,10 @@ def read_dataset_folder(dir_path, maxlen, vocab, tokenize_text, to_lower, thread
 
             if maxlen_x < len(indices):
                 maxlen_x = len(indices)
+            total_len += len(indices)
+            num_files += 1
 
+    logger.info("Average length for this dataset is %.5f" % (total_len / num_files))
     return data_x, data_y, filename_y, maxlen_x, num_hit, unk_hit, total
 
 def read_dataset(dir_path, maxlen, vocab, tokenize_text, to_lower, thread_id = 0, char_level=False):
@@ -286,9 +291,9 @@ def read_dataset(dir_path, maxlen, vocab, tokenize_text, to_lower, thread_id = 0
 
     logger.info('Thread ' + str(thread_id) + ' : ' + '  <num> hit rate: %.2f%%, <unk> hit rate: %.2f%%' % (100*num_hit/total, 100*unk_hit/total))
     logger.info('Thread ' + str(thread_id) + ' : ' + 'Read Dataset time taken = %i sec (%.1f min)' % (time_taken, time_taken_min))
-    logger.info('Thread ' + str(thread_id) + ' : ' + 'Number of positive ED notes                                    = ' + str(len(pos_data_y)))
-    logger.info('Thread ' + str(thread_id) + ' : ' + 'Number of negative ED notes                                    = ' + str(len(neg_data_y)))
-    logger.info('Thread ' + str(thread_id) + ' : ' + 'Number of ED notes                                             = ' + str(len(data_y)))
+    logger.info('Thread ' + str(thread_id) + ' : ' + 'Number of positive instances         = ' + str(len(pos_data_y)))
+    logger.info('Thread ' + str(thread_id) + ' : ' + 'Number of negative instances         = ' + str(len(neg_data_y)))
+    logger.info('Thread ' + str(thread_id) + ' : ' + 'Number of instances                  = ' + str(len(data_y)))
 
     return data_x, data_y, filename_y, maxlen_x
 

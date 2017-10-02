@@ -114,15 +114,12 @@ if (args.train_length_limit > 0):
     train_x, train_y, train_filename_y = new_train_x, new_train_y, new_train_filename_y
 
 ############################################################################################
-## Set Keras seed before importing
+## Set numpy random seed
 #
 
 if args.seed > 0:
-    logger.info('Setting np.random.seed(%d) before importing keras' % args.seed)
+    logger.info('Setting np.random.seed(%d)' % args.seed)
     np.random.seed(args.seed)
-
-import keras.backend as K
-from keras.preprocessing import sequence
 
 #######################################################################################
 ## Create permutation of indexes for the training data and save them in a file
@@ -146,9 +143,9 @@ evl = Evaluator(
 #
 
 # Pad sequences for mini-batch processing
-padded_train_x = sequence.pad_sequences(train_x)
-padded_dev_x = sequence.pad_sequences(dev_x)
-padded_test_x = sequence.pad_sequences(test_x)
+padded_train_x = helper.pad_sequences(train_x)
+padded_dev_x = helper.pad_sequences(dev_x)
+padded_test_x = helper.pad_sequences(test_x)
 
 ############################################################################################
 ## Some statistics
@@ -158,9 +155,9 @@ bincount = np.bincount(train_y)
 most_frequent_class = bincount.argmax()
 np.savetxt(out_dir + '/preds/bincount.txt', bincount, fmt='%i')
 
-np_train_y = np.array(train_y, dtype=K.floatx())
-np_dev_y = np.array(dev_y, dtype=K.floatx())
-np_test_y = np.array(test_y, dtype=K.floatx())
+np_train_y = np.array(train_y, dtype='float32')
+np_dev_y = np.array(dev_y, dtype='float32')
+np_test_y = np.array(test_y, dtype='float32')
 
 train_mean = np_train_y.mean()
 train_std = np_train_y.std()
@@ -185,7 +182,7 @@ logger.info('  train_y mean: %.3f, stdev: %.3f, MFC: %i' % (train_mean, train_st
 ## Compute class weight (where data is usually imbalanced)
 # Always imbalanced in medical text data
 
-class_weight = helper.compute_class_weight(np.array(train_y, dtype=K.floatx()))
+class_weight = helper.compute_class_weight(np.array(train_y, dtype='float32'))
 
 ######################################################################################################
 ## Create model
