@@ -62,9 +62,9 @@ U.mkdir_p(out_dir + '/models')
 U.set_logger(out_dir)
 U.print_args(args)
 
-# import sys
-# sys.stdout = open(out_dir + '/stdout.txt', 'w')
-# sys.stderr = open(out_dir + '/stderr.txt', 'w')
+import sys
+sys.stdout = open(out_dir + '/stdout.txt', 'w')
+sys.stderr = open(out_dir + '/stderr.txt', 'w')
 
 ####################################################################################
 ## Argument Validation
