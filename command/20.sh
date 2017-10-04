@@ -82,7 +82,7 @@ done
 
 expt_num="23"
 word_embedding="glove.6B.100d"
-pooling_type="attention"
+pooling_type="att"
 for rand in {1..5}
 do
     CUDA_VISIBLE_DEVICES=${gpu_num} python train.py \
@@ -98,7 +98,7 @@ done
 
 expt_num="24"
 word_embedding="imdb_100d.w2v"
-pooling_type="attention"
+pooling_type="att"
 for rand in {1..5}
 do
     CUDA_VISIBLE_DEVICES=${gpu_num} python train.py \
