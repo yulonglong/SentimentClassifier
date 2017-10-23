@@ -252,7 +252,7 @@ def read_dataset_folder(dir_path, maxlen, vocab, tokenize_text, to_lower, thread
             total_len += len(indices)
             num_files += 1
 
-    logger.info("Average length for this dataset is %.5f" % (total_len / num_files))
+    logger.info("Average length for %s is %.5f" % (dir_path, (total_len / num_files)))
     return data_x, data_y, filename_y, maxlen_x, num_hit, unk_hit, total
 
 def read_dataset(dir_path, maxlen, vocab, tokenize_text, to_lower, thread_id = 0, char_level=False):
