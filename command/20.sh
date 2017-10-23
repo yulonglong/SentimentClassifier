@@ -60,7 +60,8 @@ do
     -cl ${cnn_layer} -c ${cnn_dim} -w ${cnn_win} \
     -rl ${rnn_layer} -u ${rnn_type} -r ${rnn_dim} \
     --epochs ${num_epoch} -a ${optimizer} -e ${embedding_size} -v ${vocab_size} -do ${dropout} -trll ${train_maxlen} \
-    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78
+    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78 \
+    -nth
 done
 
 expt_num="22"
@@ -76,7 +77,8 @@ do
     -cl ${cnn_layer} -c ${cnn_dim} -w ${cnn_win} \
     -rl ${rnn_layer} -u ${rnn_type} -r ${rnn_dim} \
     --epochs ${num_epoch} -a ${optimizer} -e ${embedding_size} -v ${vocab_size} -do ${dropout} -trll ${train_maxlen} \
-    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78
+    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78 \
+    -nth
 done
 
 
@@ -93,7 +95,8 @@ do
     -cl ${cnn_layer} -c ${cnn_dim} -w ${cnn_win} \
     -rl ${rnn_layer} -u ${rnn_type} -r ${rnn_dim} \
     --epochs ${num_epoch} -a ${optimizer} -e ${embedding_size} -v ${vocab_size} -do ${dropout} -trll ${train_maxlen} \
-    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78
+    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78 \
+    -nth
 done
 
 expt_num="24"
@@ -109,5 +112,6 @@ do
     -cl ${cnn_layer} -c ${cnn_dim} -w ${cnn_win} \
     -rl ${rnn_layer} -u ${rnn_type} -r ${rnn_dim} \
     --epochs ${num_epoch} -a ${optimizer} -e ${embedding_size} -v ${vocab_size} -do ${dropout} -trll ${train_maxlen} \
-    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78
+    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78 \
+    -nth
 done
