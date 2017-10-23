@@ -74,8 +74,8 @@ U.print_args(args)
 # Either of them must be set
 assert ((args.data_binary_path) or (args.train_path and args.dev_path and args.test_path))
 
-valid_model_type =  {'crnn', 'cnn', 'rnn'}
-model_type_binary = {'crnn', 'cnn', 'rnn'}
+valid_model_type =  {'crnn', 'cnn', 'rnn', 'crcrnn'}
+model_type_binary = {'crnn', 'cnn', 'rnn', 'crcrnn'}
 
 assert args.model_type in valid_model_type
 assert args.algorithm in {'rmsprop', 'adam'}

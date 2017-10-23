@@ -143,7 +143,7 @@ class Net(nn.Module):
             self.init_embedding(vocab, emb_reader)
         
         self.cnn = None
-        if self.model_type == 'cnn' or self.model_type == 'crnn':
+        if self.model_type == 'cnn' or self.model_type == 'crnn' or self.model_type == 'crcrnn':
             self.cnn = ListModule(self, 'cnn_')
             for i in range(args.cnn_layer):
                 self.cnn.append(nn.Conv2d(in_channels=1,
@@ -153,7 +153,7 @@ class Net(nn.Module):
                 )
         
         self.rnn = None
-        if self.model_type == 'rnn' or self.model_type == 'crnn':
+        if self.model_type == 'rnn' or self.model_type == 'crnn' or self.model_type == 'crcrnn':
             self.rnn = ListModule(self, 'rnn_')
             for i in range(args.rnn_layer):
                 self.rnn.append(nn.LSTM(args.cnn_dim, args.rnn_dim))
@@ -249,13 +249,23 @@ class Net(nn.Module):
                 conv     = self.tensorLogger("dropout",         F.dropout(conv, training=training))
             
         recc     = conv
-        
+
         if self.model_type == 'rnn' or self.model_type == 'crnn':
             for curr_rnn in self.rnn:
                 prevRecc = recc
                 recc     = self.lstmWrapper(curr_rnn, recc)
                 recc     = self.tensorLogger("dropout",         F.dropout(recc, training=training))
                 recc     = self.tensorLogger("recc residual",   torch.add(prevRecc, recc))
+
+        if self.model_type == 'crcrnn':
+            assert (len(self.cnn) == len(self.rnn))
+            for i in xrange(len(self.cnn)):
+                prevConv = conv
+                conv     = self.convWrapper(self.cnn[i], conv)
+                conv     = self.tensorLogger("dropout",         F.dropout(conv, training=training))
+                conv     = self.lstmWrapper(self.rnn[i], conv)
+                conv     = self.tensorLogger("dropout",         F.dropout(conv, training=training))
+            recc = conv
 
         if self.pooling_type == 'att':
             pool      = self.tensorLogger(self.attention,    self.attention(recc))

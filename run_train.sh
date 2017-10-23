@@ -33,7 +33,7 @@ expt_num="500"
 vocab_size="50000"
 embedding_size="100"
 
-model_type="crnn"
+model_type="crcrnn"
 cnn_dim="100"
 cnn_win="3"
 cnn_layer="1"
