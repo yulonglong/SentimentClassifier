@@ -152,11 +152,13 @@ class Net(nn.Module):
                             padding=(args.cnn_window_size/2, 0)) # padding is on both sides, so padding=1 means it adds 1 on the left and 1 on the right
                 )
         
+        bidirectional = False
+        if (args.is_bidirectional): bidirectional = True
         self.rnn = None
         if self.model_type == 'rnn' or self.model_type == 'crnn' or self.model_type == 'crcrnn':
             self.rnn = ListModule(self, 'rnn_')
             for i in range(args.rnn_layer):
-                self.rnn.append(nn.LSTM(args.cnn_dim, args.rnn_dim))
+                self.rnn.append(nn.LSTM(args.cnn_dim, args.rnn_dim, bidirectional=bidirectional))
 
         self.attention = None
         if self.pooling_type == 'att':
