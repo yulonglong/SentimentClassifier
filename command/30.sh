@@ -115,3 +115,76 @@ do
     -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78 \
     -nth
 done
+
+
+
+
+
+expt_num="35"
+word_embedding="glove.6B.100d"
+pooling_type="meanot"
+for rand in {1..5}
+do
+    CUDA_VISIBLE_DEVICES=${gpu_num} python train.py \
+    -tr data/aclImdb/train/ -tu data/aclImdb/valid/ -ts data/aclImdb/test/ \
+    --emb word2vec/vectors/${word_embedding}.txt \
+    -o expt${expt_num}${gpu_num}-emb${embedding_size}-${word_embedding}-p${pooling_type}-sentiment-seed${rand}${gpu_num}78-${gpu_name} \
+    -t ${model_type} -p ${pooling_type} \
+    -cl ${cnn_layer} -c ${cnn_dim} -w ${cnn_win} \
+    -rl ${rnn_layer} -u ${rnn_type} -r ${rnn_dim} \
+    --epochs ${num_epoch} -a ${optimizer} -e ${embedding_size} -v ${vocab_size} -do ${dropout} -trll ${train_maxlen} \
+    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78 \
+    -nth -bi
+done
+
+expt_num="36"
+word_embedding="imdb_100d.w2v"
+pooling_type="meanot"
+for rand in {1..5}
+do
+    CUDA_VISIBLE_DEVICES=${gpu_num} python train.py \
+    -tr data/aclImdb/train/ -tu data/aclImdb/valid/ -ts data/aclImdb/test/ \
+    --emb word2vec/vectors/${word_embedding}.txt \
+    -o expt${expt_num}${gpu_num}-emb${embedding_size}-${word_embedding}-p${pooling_type}-sentiment-seed${rand}${gpu_num}78-${gpu_name} \
+    -t ${model_type} -p ${pooling_type} \
+    -cl ${cnn_layer} -c ${cnn_dim} -w ${cnn_win} \
+    -rl ${rnn_layer} -u ${rnn_type} -r ${rnn_dim} \
+    --epochs ${num_epoch} -a ${optimizer} -e ${embedding_size} -v ${vocab_size} -do ${dropout} -trll ${train_maxlen} \
+    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78 \
+    -nth -bi
+done
+
+
+expt_num="37"
+word_embedding="glove.6B.100d"
+pooling_type="att"
+for rand in {1..5}
+do
+    CUDA_VISIBLE_DEVICES=${gpu_num} python train.py \
+    -tr data/aclImdb/train/ -tu data/aclImdb/valid/ -ts data/aclImdb/test/ \
+    --emb word2vec/vectors/${word_embedding}.txt \
+    -o expt${expt_num}${gpu_num}-emb${embedding_size}-${word_embedding}-p${pooling_type}-sentiment-seed${rand}${gpu_num}78-${gpu_name} \
+    -t ${model_type} -p ${pooling_type} \
+    -cl ${cnn_layer} -c ${cnn_dim} -w ${cnn_win} \
+    -rl ${rnn_layer} -u ${rnn_type} -r ${rnn_dim} \
+    --epochs ${num_epoch} -a ${optimizer} -e ${embedding_size} -v ${vocab_size} -do ${dropout} -trll ${train_maxlen} \
+    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78 \
+    -nth -bi
+done
+
+expt_num="38"
+word_embedding="imdb_100d.w2v"
+pooling_type="att"
+for rand in {1..5}
+do
+    CUDA_VISIBLE_DEVICES=${gpu_num} python train.py \
+    -tr data/aclImdb/train/ -tu data/aclImdb/valid/ -ts data/aclImdb/test/ \
+    --emb word2vec/vectors/${word_embedding}.txt \
+    -o expt${expt_num}${gpu_num}-emb${embedding_size}-${word_embedding}-p${pooling_type}-sentiment-seed${rand}${gpu_num}78-${gpu_name} \
+    -t ${model_type} -p ${pooling_type} \
+    -cl ${cnn_layer} -c ${cnn_dim} -w ${cnn_win} \
+    -rl ${rnn_layer} -u ${rnn_type} -r ${rnn_dim} \
+    --epochs ${num_epoch} -a ${optimizer} -e ${embedding_size} -v ${vocab_size} -do ${dropout} -trll ${train_maxlen} \
+    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78 \
+    -nth -bi
+done
