@@ -297,6 +297,39 @@ def read_dataset(dir_path, maxlen, vocab, tokenize_text, to_lower, thread_id = 0
 
     return data_x, data_y, filename_y, maxlen_x
 
+
+def read_dataset_single(file_path, vocab, tokenize_text, to_lower, char_level=False):
+    """
+    Method to read a single movie review
+    Used for testing/demo
+    """
+    data_x = []
+    indices = []
+    with codecs.open(file_path, mode='r', encoding='ISO-8859-1') as input_file:
+        for line in input_file:
+            content = line     
+            if to_lower:
+                content = content.lower()
+            if tokenize_text:
+                content = tokenize(content)
+            else:
+                content = content.split()
+
+            for word in content:
+                if word in vocab:
+                    indices.append(vocab[word])
+                else:
+                    if isAllDigit(word):
+                        indices.append(vocab['<num>'])
+                    else:
+                        indices.append(vocab['<unk>'])
+                            # if this line is not a blank
+            if (len(content) > 0) and ('<newline>' in vocab):
+                indices.append(vocab['<newline>'])
+        data_x.append(indices)
+
+    return data_x
+
 def get_data(args, tokenize_text=True, to_lower=True, sort_by_len=False, vocab_path=None):
     """
     Function to read dataset from a global perspective.
@@ -386,25 +419,28 @@ def load_dataset(args):
         ## This is to prevent unecessary double dumping/saving which will take alot of disk space
         ## Remove the if statement to always dump the files.
         #
-        if (args.seed / 100 == 10):
-            # Dump dev file
-            with open(args.out_dir_path + '/data/dev_data_v'+ str(vocab_size) + '.pkl', 'wb') as dev_data_file:
-                pk.dump([dev_x, dev_y, dev_filename_y], dev_data_file)
+        # Dump dev file
+        with open(args.out_dir_path + '/data/dev_data_v'+ str(vocab_size) + '.pkl', 'wb') as dev_data_file:
+            pk.dump([dev_x, dev_y, dev_filename_y], dev_data_file)
 
-            # Dump test file
-            with open(args.out_dir_path + '/data/test_data_v'+ str(vocab_size) + '.pkl', 'wb') as test_data_file:
-                pk.dump([test_x, test_y, test_filename_y], test_data_file)
+        # Dump test file
+        with open(args.out_dir_path + '/data/test_data_v'+ str(vocab_size) + '.pkl', 'wb') as test_data_file:
+            pk.dump([test_x, test_y, test_filename_y], test_data_file)
 
-            # Dump processed data
-            with open(args.out_dir_path + '/data/processed_data_v'+ str(vocab_size) + '.pkl', 'wb') as processed_data_file:
-                pk.dump([
-                    (train_x, train_y, train_filename_y),
-                    (dev_x, dev_y, dev_filename_y),
-                    (test_x, test_y, test_filename_y),
-                    vocab,
-                    vocab_size,
-                    overal_maxlen
-                ], processed_data_file)
+        # Dump processed data
+        with open(args.out_dir_path + '/data/processed_data_v'+ str(vocab_size) + '.pkl', 'wb') as processed_data_file:
+            pk.dump([
+                (train_x, train_y, train_filename_y),
+                (dev_x, dev_y, dev_filename_y),
+                (test_x, test_y, test_filename_y),
+                vocab,
+                vocab_size,
+                overal_maxlen
+            ], processed_data_file)
+
+        # Dump vocab
+        with open(args.out_dir_path + '/data/vocab_v'+ str(vocab_size) + '.pkl', 'wb') as vocab_data_file:
+            pk.dump([vocab], vocab_data_file)
 
     with open(args.out_dir_path + '/preds/train_ref_length.txt', 'w') as instance_length_file:
         for s in train_x: instance_length_file.write('%d\n' % len(s))
