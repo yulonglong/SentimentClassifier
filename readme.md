@@ -31,3 +31,11 @@ The repository is publicly available at https://github.com/yulonglong/SentimentC
 **Pre-trained word embeddings**
 - To train your own word embeddings from the provided unsupervised movie reviews, execute `./run_word2vec`  
 - To download pre-trained word embeddings such as GloVe, execute `cd word2vec/vectors && ./run.sh`
+
+**To test the model**
+- For quick testing, execute `./run_test.sh`  
+- There are three arguments for testing:
+	- `-v`  : vocab path, the path to the vocabulary files saved during training
+	- `-m`  : model path, the path to the best model saved during training
+	- `-ts` : test path, the path to the text file containing the movie review to be evaluated
+- Sample command : `python test.py -v saved_model/vocab_v50000.pkl -m saved_model/best_model_weights.h5 -ts data/aclImdb/train/unsup/74_0.txt`
