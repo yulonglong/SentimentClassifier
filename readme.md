@@ -2,12 +2,13 @@ Sentiment Classification of Movie Reviews
 ===================================
 Neural Network model to classify whether a movie review is positive or negative. Movie reviews are written in English and obtained from IMDB.
 
+Please contact me at sky@u.nus.edu if you have any questions.
+
 The repository is publicly available at https://github.com/yulonglong/SentimentClassifier
 
 **Requirements and Environment:**  
 - Ubuntu 16.04  
 - Python 2.7.12  
-- GCC 5.4.0  
 
 **Python Library Required:**  
 - torch 0.2.0.post3
@@ -15,6 +16,8 @@ The repository is publicly available at https://github.com/yulonglong/SentimentC
 - numpy 1.13.3  
 - scipy 0.19.1  
 - nltk 3.2.1
+
+Python libraries above can be installed via `pip`.
 
 **Dataset:**  
 - IMDB Large Moview Review dataset is obtained from `http://ai.stanford.edu/~amaas/data/sentiment/`
