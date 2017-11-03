@@ -2,13 +2,13 @@
 
 # Negative Review
 python test.py \
--v expt100-sentiment-seed1078-GTX1080/data/vocab_v50000.pkl \
--m expt100-sentiment-seed1078-GTX1080/models/best_model_weights.h5 \
--ts data/aclImdb/train/unsup/16088_0.txt
+-v best_model/vocab_v50000.pkl \
+-m best_model/best_model_weights.h5 \
+-ts data/aclImdb/test/neg/2710_1.txt
 
 # Positive Review
 python test.py \
--v expt100-sentiment-seed1078-GTX1080/data/vocab_v50000.pkl \
--m expt100-sentiment-seed1078-GTX1080/models/best_model_weights.h5 \
--ts data/aclImdb/train/unsup/74_0.txt
+-v best_model/vocab_v50000.pkl \
+-m best_model/best_model_weights.h5 \
+-ts data/aclImdb/test/pos/8580_10.txt
 
