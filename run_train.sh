@@ -27,20 +27,25 @@ if [[ $gpu_name == *"nscc"* ]]
         theano_flags_device=gpu
 fi
 
+echo "Checking whether word embedding exists..."
+
+./run_word2vec.sh
+
 echo "Running script on ${theano_flags_device} : ${gpu_name}"
 
-expt_num="500"
+expt_num="34"
 vocab_size="50000"
 embedding_size="100"
+word_embedding="imdb_100d.w2v"
 
-model_type="crcrnn"
+model_type="crnn"
 cnn_dim="100"
 cnn_win="3"
 cnn_layer="1"
 rnn_type="lstm"
 rnn_dim="100"
 rnn_layer="1"
-pooling_type="meanot"
+pooling_type="att"
 
 optimizer="rmsprop"
 num_epoch="25"
@@ -53,11 +58,12 @@ for rand in {1..1}
 do
     CUDA_VISIBLE_DEVICES=${gpu_num} python train.py \
     -tr data/aclImdb/train/ -tu data/aclImdb/valid/ -ts data/aclImdb/test/ \
-    --emb word2vec/vectors/glove.6B.100d.txt \
-    -o expt${expt_num}${gpu_num}-sentiment-seed${rand}${gpu_num}78-${gpu_name} \
+    --emb word2vec/vectors/${word_embedding}.txt \
+    -o expt${expt_num}${gpu_num}-emb${embedding_size}-${word_embedding}-p${pooling_type}-sentiment-seed${rand}${gpu_num}78-${gpu_name} \
     -t ${model_type} -p ${pooling_type} \
     -cl ${cnn_layer} -c ${cnn_dim} -w ${cnn_win} \
     -rl ${rnn_layer} -u ${rnn_type} -r ${rnn_dim} \
     --epochs ${num_epoch} -a ${optimizer} -e ${embedding_size} -v ${vocab_size} -do ${dropout} -trll ${train_maxlen} \
-    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78
+    -b ${batch_size} -be ${batch_eval_size} --seed ${rand}${gpu_num}78 --shuffle-seed ${rand}${gpu_num}78 \
+    -nth
 done
