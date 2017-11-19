@@ -32,7 +32,8 @@ If you are running a UNIX based machine, you can run the shell script `./setup.s
 	- The data will be automatically downloaded and preprocessed into training, validation, and test set
 
 **To train the model**
-- Execute `./run_train.sh`  
+- Execute `./run_train.sh <GPU_Number> <GPU_Name>` , e.g., `$> ./run_train.sh 0 TITANX`  
+- Please make sure Nvidia CUDA is installed to be able to train the model using GPU.  
 - For more details on the training arguments, refer to the sample `run_train.sh` shell script  
 
 **Pre-trained word embeddings**
