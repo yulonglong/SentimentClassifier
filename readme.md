@@ -19,6 +19,10 @@ The repository is publicly available at https://github.com/yulonglong/SentimentC
 
 Python libraries above can be installed via `pip`.
 
+**Python libraries setup:**
+
+If you are running a UNIX based machine, you can run the shell script `./setup.sh` to install all the required python libraries, assuming `pip` is already installed. If you prefer to install manually, please refer to the list of libraries above.
+
 **Dataset:**  
 - IMDB Large Moview Review dataset is obtained from `http://ai.stanford.edu/~amaas/data/sentiment/`
 - Andrew L. Maas, Raymond E. Daly, Peter T. Pham, Dan Huang, Andrew Y. Ng, and Christopher Potts. (2011). Learning Word Vectors for Sentiment Analysis. _The 49th Annual Meeting of the Association for Computational Linguistics (ACL 2011)_.  
