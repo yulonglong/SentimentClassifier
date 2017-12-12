@@ -30,6 +30,8 @@ If you are running a UNIX based machine, you can run the shell script `./setup.s
 	- Download and process dataset from scratch by running `run.sh` script in `data` folder  
 	- i.e., execute the following command `cd data && ./run.sh`  
 	- The data will be automatically downloaded and preprocessed into training, validation, and test set
+	- If you do not have java development kit (JDK) installed, please install by running this command:
+		- `sudo apt-get update && sudo apt-get install openjdk-8-jdk`
 
 **To train the model**
 - Execute `./run_train.sh <GPU_Number> <GPU_Name>` , e.g., `$> ./run_train.sh 0 TITANX`  
