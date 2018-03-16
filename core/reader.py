@@ -244,7 +244,7 @@ def read_dataset_folder(dir_path, maxlen, vocab, tokenize_text, to_lower, thread
             elif ("neg/*" in dir_path):
                 data_y.append(float(0))
             else:
-                raise wrongFolderNameError
+                data_y.append(float(-1))
             filename_y.append(input_file.name) # Keep track of the filename
 
             if maxlen_x < len(indices):

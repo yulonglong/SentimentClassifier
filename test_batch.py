@@ -19,9 +19,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--vocab-path", dest="vocab_path", type=str, metavar='<str>', required=True, help="The path to the vocab file")
 parser.add_argument("-m", "--model-path", dest="model_path", type=str, metavar='<str>', required=True, help="The path to the model file")
 parser.add_argument("-ts", "--test", dest="test_path", type=str, metavar='<str>', required=True, help="The path to the test file")
+parser.add_argument("-b", "--batch-size", dest="batch_size", type=int, metavar='<int>', default=192, help="Batch size for testing (default=192). Increase the value for faster processing if you have larger RAM size.")
 
 args = parser.parse_args()
 
+output_foldername = 'test_batch_output/'
+U.mkdir_p(output_foldername)
 U.set_logger()
 U.print_args(args)
 
@@ -38,9 +41,12 @@ with open(args.vocab_path, 'rb') as vocab_file:
 
 logger.info("Loading vocab completed!")
 
-x = dataset_reader.read_dataset_single(args.test_path, vocab, True, True)
-# make duplicate of the same set so it doesnt get squeezed in the model if batch size is 1
-x = np.array([x, x]).squeeze()
+test_x, test_y, test_filename_y, _, _, _, _ = dataset_reader.read_dataset_folder(args.test_path + "/*", 0, vocab, True, True)
+
+test_x, test_y, test_filename_y, _ = (
+    helper.sort_and_split_data_into_chunks(
+        test_x, test_y, test_filename_y, args.batch_size)
+)
 
 ######################################################################################################
 ## Load model
@@ -50,9 +56,7 @@ import torch
 from torch.autograd import Variable
 
 logger.info("Loading model...")
-model = torch.load(args.model_path)
-if torch.cuda.is_available():
-    model.cuda()
+model = torch.load(args.model_path, map_location={'cuda:0': 'cpu'})
 logger.info("Loading model completed!")
 # logger.info(model)
 
@@ -60,19 +64,18 @@ logger.info("Loading model completed!")
 ## Testing
 #
 t0 = time()
+test_pred = np.array([])
 
-pytorch_test_x = torch.from_numpy(x.astype('int64'))
+for idx, _ in enumerate(test_x):
+    pytorch_test_x = torch.from_numpy(test_x[idx].astype('int64'))
+    curr_test_pred = model(Variable(pytorch_test_x))
+    curr_test_pred = curr_test_pred.cpu().data.numpy()
+    test_pred = np.append(test_pred, curr_test_pred)
 
-if torch.cuda.is_available():
-	pytorch_test_x = pytorch_test_x.cuda()
-	
-pytorch_test_x = Variable(pytorch_test_x)
-outputs = model(pytorch_test_x)
-outputs = outputs.cpu().data.numpy()
-
-percentScore = outputs[0] * 100.0
-if (percentScore >= 50.0): 
-	logger.info(U.BColors.BOKGREEN + "Prediction Score: %.2f %% (Positive Review)" % (percentScore))
-else:
-	logger.info(U.BColors.BRED + "Prediction Score: %.2f %% (Negative Review)" % (percentScore))
+with open(output_foldername + "result.csv", "w") as outfile:
+    assert len(test_pred) == len(test_filename_y)
+    outfile.write("Filename,Prediction\n")
+    for i in xrange(len(test_pred)):
+        outfile.write(str(test_filename_y[i]) + "," + str(test_pred[i]) + "\n")
+    logger.info(str(len(test_pred)) + " files has been reviewed successfully. Results are saved in " + output_foldername + "result.csv")
 
