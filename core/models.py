@@ -68,6 +68,7 @@ class Attention(nn.Module):
     def __init__(self, dim):
         super(Attention, self).__init__()
         self.dim = dim
+        self.att_weights = None
         self.w = nn.Parameter(torch.Tensor(dim, dim))
         self.v = nn.Parameter(torch.Tensor(dim))
         self.reset_parameters()
@@ -82,11 +83,14 @@ class Attention(nn.Module):
         wplus = wplus.view(-1, input.size()[1], self.w.size()[1])
         wplus = F.tanh(wplus)
 
-        att_weights = torch.mm(wplus.view(-1, wplus.size()[2]), self.v.view(self.v.size()[0], 1))
-        att_weights = att_weights.view(-1, wplus.size()[1])
-        att_weights = F.softmax(att_weights)
+        att_w = torch.mm(wplus.view(-1, wplus.size()[2]), self.v.view(self.v.size()[0], 1))
+        att_w = att_w.view(-1, wplus.size()[1])
+        att_w = F.softmax(att_w,dim=1)
 
-        after_attention = torch.bmm(att_weights.unsqueeze(1), input)
+        # Save attention weights to be retrieved for visualization
+        self.att_weights = att_w
+
+        after_attention = torch.bmm(att_w.unsqueeze(1), input)
 
         return after_attention
 
@@ -137,6 +141,7 @@ class Net(nn.Module):
         self.batch_number = None
         self.model_type = args.model_type
         self.pooling_type = args.pooling_type
+        self.att_weights = None # Attribute to save attention weights
 
         self.lookup_table = nn.Embedding(args.vocab_size, args.emb_dim)
         if emb_reader:
@@ -257,7 +262,6 @@ class Net(nn.Module):
                 prevRecc = recc
                 recc     = self.lstmWrapper(curr_rnn, recc)
                 recc     = self.tensorLogger("dropout",         F.dropout(recc, training=training))
-                recc     = self.tensorLogger("recc residual",   torch.add(prevRecc, recc))
 
         if self.model_type == 'crcrnn':
             assert (len(self.cnn) == len(self.rnn))
@@ -271,6 +275,7 @@ class Net(nn.Module):
 
         if self.pooling_type == 'att':
             pool      = self.tensorLogger(self.attention,    self.attention(recc))
+            self.att_weights = self.attention.att_weights # Save attention weights
         else:
             pool      = self.tensorLogger("Mean over time",  F.avg_pool2d(recc, (recc.size()[1],1)))
         pool      = self.tensorLogger("squeeze",         pool.squeeze(1))
