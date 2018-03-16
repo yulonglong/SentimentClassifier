@@ -161,7 +161,7 @@ def create_vocab(dir_path, vocab_size, tokenize_text, to_lower):
                             word_freqs[word] = 1
                         total_words += 1
             counter_curr += 1
-            if counter_curr % 100 == 0:
+            if counter_curr % 1000 == 0:
                 logger.info(str(i) + ") Completed " + str(counter_curr) + " out of " + str(len_curr))
 
     # Pop the <num> string because going to be added later
