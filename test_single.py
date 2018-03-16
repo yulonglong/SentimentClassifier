@@ -70,3 +70,8 @@ if (percentScore >= 50.0):
 else:
 	logger.info(U.BColors.BRED + "Prediction Score: %.2f %% (Negative Review)" % (percentScore))
 
+total_time = time() - t0
+total_time_hours = total_time/3600
+logger.info('------------------------------------------------------------------------')
+logger.info('Total time: %i seconds in total (%.1f hours)' % (total_time, total_time_hours))
+logger.info('------------------------------------------------------------------------')

@@ -41,12 +41,14 @@ with open(args.vocab_path, 'rb') as vocab_file:
 
 logger.info("Loading vocab completed!")
 
+logger.info("Loading dataset...")
 test_x, test_y, test_filename_y, _, _, _, _ = dataset_reader.read_dataset_folder(args.test_path + "/*", 0, vocab, True, True)
 
 test_x, test_y, test_filename_y, _ = (
     helper.sort_and_split_data_into_chunks(
         test_x, test_y, test_filename_y, args.batch_size)
 )
+logger.info("Loading dataset completed!")
 
 ######################################################################################################
 ## Load model
@@ -66,16 +68,24 @@ logger.info("Loading model completed!")
 t0 = time()
 test_pred = np.array([])
 
+logger.info("Predicting scores...")
 for idx, _ in enumerate(test_x):
     pytorch_test_x = torch.from_numpy(test_x[idx].astype('int64'))
     curr_test_pred = model(Variable(pytorch_test_x))
     curr_test_pred = curr_test_pred.cpu().data.numpy()
     test_pred = np.append(test_pred, curr_test_pred)
+logger.info("Prediction completed...")
 
 with open(output_foldername + "result.csv", "w") as outfile:
     assert len(test_pred) == len(test_filename_y)
     outfile.write("Filename,Prediction\n")
     for i in xrange(len(test_pred)):
         outfile.write(str(test_filename_y[i]) + "," + str(test_pred[i]) + "\n")
-    logger.info(str(len(test_pred)) + " files has been reviewed successfully. Results are saved in " + output_foldername + "result.csv")
+    logger.info(str(len(test_pred)) + " files has been reviewed successfully.")
+    logger.info("Results are saved in " + U.BColors.BOKGREEN + output_foldername + "result.csv")
 
+total_time = time() - t0
+total_time_minutes = total_time/60
+logger.info('------------------------------------------------------------------------')
+logger.info('Total time: %i seconds in total (%.1f minutes)' % (total_time, total_time_minutes))
+logger.info('------------------------------------------------------------------------')
