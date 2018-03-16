@@ -6,9 +6,13 @@ Please contact me at sky@u.nus.edu if you have any questions.
 
 The repository is publicly available at https://github.com/yulonglong/SentimentClassifier
 
+Stable release with pdf report is in https://github.com/yulonglong/SentimentClassifier/releases/tag/v1.4
+
+This repository has been updated with more recent version of PyTorch and other libraries, please visit tag v1.4 to replicate results reported in the pdf documentation.
+
 **TLDR:**  
 - Assuming you are on Ubuntu 16.04 with Python 2.7, open terminal  
-- `./setup.sh` (Install packages)
+- `./setup.sh` (Install packages) or `./setup_global.sh` (To install packages globally with sudo access)
 - `cd data && ./run.sh && cd ..` (Download and Prepare dataset)
 - `./run_train.sh 0 GTX1070` (Train model on GPU 0, a GTX1070)
 - `./run_test` (Test model on CPU)
@@ -18,11 +22,14 @@ The repository is publicly available at https://github.com/yulonglong/SentimentC
 - Python 2.7.12  
 
 **Python Library Required:**  
-- torch 0.2.0.post3
+- torch 0.3.1  
 - h5py 2.7.1  
-- numpy 1.13.3  
-- scipy 0.19.1  
-- nltk 3.2.1
+- numpy 1.14.2  
+- scikit-learn 0.19.1  
+- scipy 1.0.0  
+- nltk 3.2.5  
+- pydot 3.2.5  
+- matplotlib 2.2.0  
 
 Python libraries above can be installed via `pip`.
 
