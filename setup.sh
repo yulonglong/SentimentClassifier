@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # If you are running on a fresh computer, please run this setup files to install all the python packages
-# This assumes pip is already installed
+
+echo "WARNING: This script assumes you already have pip and java JDK installed"
+echo "If not, please execute the following command:"
+echo "sudo apt-get update && sudo apt-get install python-pip openjdk-8-jdk"
 
 pip install numpy==1.13.3 --user
 pip install scipy==0.19.1 --user

@@ -6,6 +6,13 @@ Please contact me at sky@u.nus.edu if you have any questions.
 
 The repository is publicly available at https://github.com/yulonglong/SentimentClassifier
 
+**TLDR:**  
+- Assuming you are on Ubuntu 16.04 with Python 2.7, open terminal  
+- `./setup.sh` (Install packages)
+- `cd data && ./run.sh && cd ..` (Download and Prepare dataset)
+- `./run_train.sh 0 GTX1070` (Train model on GPU 0, a GTX1070)
+- `./run_test` (Test model on CPU)
+
 **Requirements and Environment:**  
 - Ubuntu 16.04  
 - Python 2.7.12  
