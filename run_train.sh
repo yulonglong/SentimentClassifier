@@ -29,7 +29,7 @@ fi
 
 echo "Checking whether word embedding exists..."
 
-./run_word2vec.sh
+./run_word2vec.sh 100
 
 echo "Running script on ${theano_flags_device} : ${gpu_name}"
 
