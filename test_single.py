@@ -31,6 +31,7 @@ from core.evaluator import Evaluator
 #######################################################################################
 ## Prepare data
 #
+t0 = time()
 
 logger.info("Loading vocab...")
 with open(args.vocab_path, 'rb') as vocab_file:
@@ -57,7 +58,7 @@ logger.info("Loading model completed!")
 ######################################################################################################
 ## Testing
 #
-t0 = time()
+t1 = time()
 
 pytorch_test_x = torch.from_numpy(x.astype('int64'))
 pytorch_test_x = Variable(pytorch_test_x)
@@ -70,8 +71,15 @@ if (percentScore >= 50.0):
 else:
 	logger.info(U.BColors.BRED + "Prediction Score: %.2f %% (Negative Review)" % (percentScore))
 
+preparation_time = t1 - t0
+preparation_time_minutes = preparation_time/60
+prediction_time = time() - t1
+prediction_time_minutes = prediction_time/60
 total_time = time() - t0
-total_time_hours = total_time/3600
+total_time_minutes = total_time/60
+
 logger.info('------------------------------------------------------------------------')
-logger.info('Total time: %i seconds in total (%.1f hours)' % (total_time, total_time_hours))
+logger.info('Preparation time : %i seconds in total (%.1f minutes)' % (preparation_time, preparation_time_minutes))
+logger.info('Prediction time  : %i seconds in total (%.1f minutes)' % (prediction_time, prediction_time_minutes))
+logger.info('Total time       : %i seconds in total (%.1f minutes)' % (total_time, total_time_minutes))
 logger.info('------------------------------------------------------------------------')

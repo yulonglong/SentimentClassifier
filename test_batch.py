@@ -35,6 +35,8 @@ from core.evaluator import Evaluator
 ## Prepare data
 #
 
+t0 = time()
+
 logger.info("Loading vocab...")
 with open(args.vocab_path, 'rb') as vocab_file:
 	[vocab] = pk.load(vocab_file)
@@ -65,7 +67,7 @@ logger.info("Loading model completed!")
 ######################################################################################################
 ## Testing
 #
-t0 = time()
+t1 = time()
 test_pred = np.array([])
 
 logger.info("Predicting scores...")
@@ -84,8 +86,15 @@ with open(output_foldername + "result.csv", "w") as outfile:
     logger.info(str(len(test_pred)) + " files has been reviewed successfully.")
     logger.info("Results are saved in " + U.BColors.BOKGREEN + output_foldername + "result.csv")
 
+preparation_time = t1 - t0
+preparation_time_minutes = preparation_time/60
+prediction_time = time() - t1
+prediction_time_minutes = prediction_time/60
 total_time = time() - t0
 total_time_minutes = total_time/60
+
 logger.info('------------------------------------------------------------------------')
-logger.info('Total time: %i seconds in total (%.1f minutes)' % (total_time, total_time_minutes))
+logger.info('Preparation time : %i seconds in total (%.1f minutes)' % (preparation_time, preparation_time_minutes))
+logger.info('Prediction time  : %i seconds in total (%.1f minutes)' % (prediction_time, prediction_time_minutes))
+logger.info('Total time       : %i seconds in total (%.1f minutes)' % (total_time, total_time_minutes))
 logger.info('------------------------------------------------------------------------')
