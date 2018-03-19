@@ -78,12 +78,16 @@ for idx, _ in enumerate(test_x):
     test_pred = np.append(test_pred, curr_test_pred)
 logger.info("Prediction completed...")
 
+# Sort the prediction result based on filename
+assert len(test_pred) == len(test_filename_y)
+filename_result, pred_result = (list(t) for t in zip(*sorted(zip(test_filename_y, test_pred))))
+
 with open(output_foldername + "result.csv", "w") as outfile:
-    assert len(test_pred) == len(test_filename_y)
+    assert len(filename_result) == len(pred_result)
     outfile.write("Filename,Prediction\n")
-    for i in xrange(len(test_pred)):
-        outfile.write(str(test_filename_y[i]) + "," + str(test_pred[i]) + "\n")
-    logger.info(str(len(test_pred)) + " files has been reviewed successfully.")
+    for i in xrange(len(filename_result)):
+        outfile.write('%s,%.4f\n' % (filename_result[i],pred_result[i]))
+    logger.info(str(len(filename_result)) + " files has been reviewed successfully.")
     logger.info("Results are saved in " + U.BColors.BOKGREEN + output_foldername + "result.csv")
 
 preparation_time = t1 - t0
