@@ -21,73 +21,9 @@ logger = logging.getLogger(__name__)
 ## MultiThread class for reading datasets
 #
 
-class ReadDatasetThread (multiprocessing.Process):
-    """
-    A class to multithread read_dataset method (train, dev, and test)
-    Please take note of the multiprocessing implementation as join() was not used
-    """
-    def __init__(self, threadID, threadName, dir_path, maxlen, vocab, tokenize_text, to_lower):
-        """
-        Constructor to initialize necessary information to start reading dataset
-        """
-        multiprocessing.Process.__init__(self)
-
-        self.threadID = threadID
-        self.threadName = threadName
-        
-        # Read dataset arguments
-        self.dir_path = dir_path
-        self.maxlen = maxlen
-        self.vocab = vocab
-        self.tokenize_text = tokenize_text
-        self.to_lower = to_lower
-
-        # Result of read_dataset to be kept
-        self.x = []
-        self.y = []
-        self.filename_y = []
-        self.overallMaxlen = 0
-
-        self.result_queue = multiprocessing.Queue()
-
-    def run(self):
-        """
-        Main multi-threaded function to run in this class
-        """
-        logger.info('Thread ' + str(self.threadID) + ' : ' + self.threadName + ' - Reading dataset')
-        x, y, filename_y, overallMaxlen = read_dataset(self.dir_path, self.maxlen, self.vocab, self.tokenize_text, self.to_lower, thread_id = self.threadID)
-        
-        self.result_queue.put(x)
-        self.result_queue.put(y)
-        self.result_queue.put(filename_y)
-        self.result_queue.put(overallMaxlen)
-        return
-
-    def get_dataset(self):
-        """
-        Getter function
-        Obtain the results after the thread is finished running.
-        """
-        x = self.result_queue.get()
-        y = self.result_queue.get()
-        filename_y = self.result_queue.get()
-        overallMaxlen = self.result_queue.get()
-        logger.info('Thread ' + str(self.threadID) + ' : Dataset is retrieved from queue successfully')
-        return x, y, filename_y, overallMaxlen
-
-###############################################################################
-## END Multithread class for reading datasets
-###############################################################################
-
-
-
-###############################################################################
-## MultiThread class for reading datasets
-#
-
 class ReadDatasetFileListThread (multiprocessing.Process):
     """
-    A class to multithread read_dataset_file_list method (basically split reading a folder of files)
+    A class to multithread read_dataset_file_list method (reading a list of files)
     Please take note of the multiprocessing implementation as join() was not used
     """
     def __init__(self, threadID, threadName, file_list, maxlen, vocab, tokenize_text, to_lower):
@@ -151,7 +87,8 @@ class ReadDatasetFileListThread (multiprocessing.Process):
 
 class ReadDatasetFolder(object):
     """
-    A class to multithread read_dataset_file_list method (basically split reading a folder of files)
+    A class to multithread reading all files in a folder
+    Using all available CPU threads minus two
     Please take note of the multiprocessing implementation as join() was not used
     """
     def __init__(self, dir_path, maxlen, vocab, tokenize_text, to_lower):
@@ -186,6 +123,9 @@ class ReadDatasetFolder(object):
         self.file_list_collection = [file_list_full[i:i+batch_size] for i in xrange(0, len(file_list_full), batch_size)]
 
     def read_dataset_multithread(self):
+        """
+        The only function to call in this class other than initializing the class
+        """
         threadCollection = [None] * len(self.file_list_collection)
         for threadNum in xrange(len(self.file_list_collection)):
             threadCollection[threadNum] = ReadDatasetFileListThread(threadNum, self.dir_path,
@@ -376,9 +316,9 @@ def read_dataset_file_list(file_list, maxlen, vocab, tokenize_text, to_lower, th
                     indices.append(vocab['<newline>'])
 
             data_x.append(indices)
-            if ("pos/*" in file_path):
+            if ("pos" in file_path):
                 data_y.append(float(1))
-            elif ("neg/*" in file_path):
+            elif ("neg" in file_path):
                 data_y.append(float(0))
             else:
                 data_y.append(float(-1))
@@ -391,70 +331,7 @@ def read_dataset_file_list(file_list, maxlen, vocab, tokenize_text, to_lower, th
 
     return data_x, data_y, filename_y, maxlen_x, num_hit, unk_hit, total, total_len, num_files
 
-
-def read_dataset_folder(dir_path, maxlen, vocab, tokenize_text, to_lower, thread_id = 0, char_level=False):
-    """
-    Read dataset from a specified folder. 
-    """
-
-    data_x, data_y, filename_y = [], [], []
-    num_hit, unk_hit, total = 0., 0., 0.
-    maxlen_x = -1
-    total_len = 0
-    num_files = 0
-
-    # Reading data in the specified folder
-    dir_path_curr = glob.glob(dir_path)
-    # Traverse every file in the directory
-    for file_path in dir_path_curr:
-        ###################################################
-        ## BEGIN READ FREE-TEXT
-        #
-        indices = []
-        with codecs.open(file_path, mode='r', encoding='ISO-8859-1') as input_file:
-            contains_ct_word = False
-            for line in input_file:
-                content = line
-               
-                if to_lower:
-                    content = content.lower()
-                if tokenize_text:
-                    content = tokenize(content)
-                else:
-                    content = content.split()
-                if maxlen > 0 and len(content) > maxlen:
-                    continue
-                
-                for word in content:
-                    if word in vocab:
-                        indices.append(vocab[word])
-                        if (word == '<num>'): num_hit += 1
-                    else:
-                        indices.append(vocab['<unk>'])
-                        unk_hit += 1
-                    total += 1
-                # if this line is not a blank
-                if (len(content) > 0) and ('<newline>' in vocab):
-                    indices.append(vocab['<newline>'])
-
-            data_x.append(indices)
-            if ("pos/*" in dir_path):
-                data_y.append(float(1))
-            elif ("neg/*" in dir_path):
-                data_y.append(float(0))
-            else:
-                data_y.append(float(-1))
-            filename_y.append(input_file.name) # Keep track of the filename
-
-            if maxlen_x < len(indices):
-                maxlen_x = len(indices)
-            total_len += len(indices)
-            num_files += 1
-
-    logger.info("Average length for %s is %.5f" % (dir_path, (total_len / num_files)))
-    return data_x, data_y, filename_y, maxlen_x, num_hit, unk_hit, total
-
-def read_dataset(dir_path, maxlen, vocab, tokenize_text, to_lower, thread_id = 0, char_level=False):
+def read_dataset(dir_path, maxlen, vocab, tokenize_text, to_lower, char_level=False):
     """
     Read dataset from a particular directory which contains positive, negative, and lab folders.
     In other words, this function is to read either 'train', 'valid', or 'test' set
@@ -462,17 +339,19 @@ def read_dataset(dir_path, maxlen, vocab, tokenize_text, to_lower, thread_id = 0
     """
     t0 = time.time()
 
-    logger.info('Thread ' + str(thread_id) + ' : ' + 'Reading dataset from: ' + dir_path)
+    logger.info('Reading dataset from: ' + dir_path)
     if maxlen > 0:
-        logger.info('Thread ' + str(thread_id) + ' : ' + '  Removing sequences with more than ' + str(maxlen) + ' words')
+        logger.info('Removing sequences with more than ' + str(maxlen) + ' words')
 
     # Reading positive data
     dir_path_pos = dir_path + "pos/*"
-    pos_data_x, pos_data_y, pos_filename_y, pos_maxlen_x, pos_num_hit, pos_unk_hit, pos_total = read_dataset_folder(dir_path_pos, maxlen, vocab, tokenize_text, to_lower, thread_id = thread_id, char_level=False)
+    posDatasetMulti = ReadDatasetFolder(dir_path_pos, maxlen, vocab, tokenize_text, to_lower)
+    pos_data_x, pos_data_y, pos_filename_y, pos_maxlen_x, pos_num_hit, pos_unk_hit, pos_total = posDatasetMulti.read_dataset_multithread()
 
     # Reading negative data
     dir_path_neg = dir_path + "neg/*"
-    neg_data_x, neg_data_y, neg_filename_y, neg_maxlen_x, neg_num_hit, neg_unk_hit, neg_total = read_dataset_folder(dir_path_neg, maxlen, vocab, tokenize_text, to_lower, thread_id = thread_id, char_level=False)
+    negDatasetMulti = ReadDatasetFolder(dir_path_neg, maxlen, vocab, tokenize_text, to_lower)
+    neg_data_x, neg_data_y, neg_filename_y, neg_maxlen_x, neg_num_hit, neg_unk_hit, neg_total = negDatasetMulti.read_dataset_multithread()
 
     # Appending array
     data_x = pos_data_x + neg_data_x
@@ -488,11 +367,11 @@ def read_dataset(dir_path, maxlen, vocab, tokenize_text, to_lower, thread_id = 0
     time_taken =  time.time() - t0
     time_taken_min = time_taken/60
 
-    logger.info('Thread ' + str(thread_id) + ' : ' + '  <num> hit rate: %.2f%%, <unk> hit rate: %.2f%%' % (100*num_hit/total, 100*unk_hit/total))
-    logger.info('Thread ' + str(thread_id) + ' : ' + 'Read Dataset time taken = %i sec (%.1f min)' % (time_taken, time_taken_min))
-    logger.info('Thread ' + str(thread_id) + ' : ' + 'Number of positive instances         = ' + str(len(pos_data_y)))
-    logger.info('Thread ' + str(thread_id) + ' : ' + 'Number of negative instances         = ' + str(len(neg_data_y)))
-    logger.info('Thread ' + str(thread_id) + ' : ' + 'Number of instances                  = ' + str(len(data_y)))
+    logger.info('<num> hit rate: %.2f%%, <unk> hit rate: %.2f%%' % (100*num_hit/total, 100*unk_hit/total))
+    logger.info('Read Dataset time taken = %i sec (%.1f min)' % (time_taken, time_taken_min))
+    logger.info('Number of positive instances         = ' + str(len(pos_data_y)))
+    logger.info('Number of negative instances         = ' + str(len(neg_data_y)))
+    logger.info('Number of instances                  = ' + str(len(data_y)))
 
     return data_x, data_y, filename_y, maxlen_x
 
@@ -537,7 +416,6 @@ def get_data(args, tokenize_text=True, to_lower=True, sort_by_len=False, vocab_p
     train_path, dev_path, test_path = args.train_path, args.dev_path, args.test_path
     vocab_size = args.vocab_size
     maxlen = 0
-    is_multithread = not args.no_multithread
     
     if not vocab_path:
         # If vocab path is not specified, create vocabulary from scratch
@@ -556,30 +434,10 @@ def get_data(args, tokenize_text=True, to_lower=True, sort_by_len=False, vocab_p
     # ===== Begin Concurrent/Parallel multithreading read_dataset =====
     # Please take note of the multiprocessing implementation as join() was not used
     # but it was proven to work fine and double checked the result with no multiprocessing
-    if (is_multithread):
-        logger.info('Creating 3 threads for train, dev, and test read_dataset')
-
-        # Create new threads
-        trainReadDatasetThread = ReadDatasetThread(1, "Train-Thread", train_path, maxlen, vocab, tokenize_text, to_lower)
-        devReadDatasetThread = ReadDatasetThread(2, "Dev-Thread", dev_path, 0, vocab, tokenize_text, to_lower)
-        testReadDatasetThread = ReadDatasetThread(3, "Test-Thread", test_path, 0, vocab, tokenize_text, to_lower)
-
-        # Start new Threads
-        trainReadDatasetThread.start()
-        devReadDatasetThread.start()
-        testReadDatasetThread.start()
-
-        train_x, train_y, train_filename_y, train_maxlen = trainReadDatasetThread.get_dataset()
-        dev_x, dev_y, dev_filename_y, dev_maxlen = devReadDatasetThread.get_dataset()
-        test_x, test_y, test_filename_y, test_maxlen = testReadDatasetThread.get_dataset()
-        
-        logger.info('Successfully synchronized train, dev, and test threads.. Reading dataset complete..')
-    # ===== End multithreading read_dataset =====
-    else:
-        train_x, train_y, train_filename_y, train_maxlen, = read_dataset(train_path, maxlen, vocab, tokenize_text, to_lower)
-        dev_x, dev_y, dev_filename_y, dev_maxlen, = read_dataset(dev_path, 0, vocab, tokenize_text, to_lower)
-        test_x, test_y, test_filename_y, test_maxlen, = read_dataset(test_path, 0, vocab, tokenize_text, to_lower)
-
+    train_x, train_y, train_filename_y, train_maxlen, = read_dataset(train_path, maxlen, vocab, tokenize_text, to_lower)
+    dev_x, dev_y, dev_filename_y, dev_maxlen, = read_dataset(dev_path, maxlen, vocab, tokenize_text, to_lower)
+    test_x, test_y, test_filename_y, test_maxlen, = read_dataset(test_path, maxlen, vocab, tokenize_text, to_lower)
+    # ===== End Concurrent/Parallel multithreading read_dataset =====
 
     overal_maxlen = max(train_maxlen, dev_maxlen, test_maxlen)
     
