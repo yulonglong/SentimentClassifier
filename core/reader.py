@@ -80,6 +80,146 @@ class ReadDatasetThread (multiprocessing.Process):
 ###############################################################################
 
 
+
+###############################################################################
+## MultiThread class for reading datasets
+#
+
+class ReadDatasetFileListThread (multiprocessing.Process):
+    """
+    A class to multithread read_dataset_file_list method (basically split reading a folder of files)
+    Please take note of the multiprocessing implementation as join() was not used
+    """
+    def __init__(self, threadID, threadName, file_list, maxlen, vocab, tokenize_text, to_lower):
+        """
+        Constructor to initialize necessary information to start reading dataset
+        """
+        multiprocessing.Process.__init__(self)
+
+        self.threadID = threadID
+        self.threadName = threadName
+        
+        # Read dataset arguments
+        self.file_list = file_list
+        self.maxlen = maxlen
+        self.vocab = vocab
+        self.tokenize_text = tokenize_text
+        self.to_lower = to_lower
+
+        # Result of read_dataset to be kept
+        self.x = []
+        self.y = []
+        self.filename_y = []
+        self.overallMaxlen = 0
+
+        self.result_queue = multiprocessing.Queue()
+
+    def run(self):
+        """
+        Main multi-threaded function to run in this class
+        """
+        logger.info('Thread ' + str(self.threadID) + ' : ' + self.threadName + ' - Reading dataset')
+        x, y, filename_y, overallMaxlen, num_hit, unk_hit, total, total_len, num_files  = read_dataset_file_list(self.file_list, self.maxlen, self.vocab, self.tokenize_text, self.to_lower, thread_id = self.threadID)
+        
+        self.result_queue.put(x)
+        self.result_queue.put(y)
+        self.result_queue.put(filename_y)
+        self.result_queue.put(overallMaxlen)
+        self.result_queue.put(num_hit)
+        self.result_queue.put(unk_hit)
+        self.result_queue.put(total)
+        self.result_queue.put(total_len)
+        self.result_queue.put(num_files)
+        return
+
+    def get_dataset(self):
+        """
+        Getter function
+        Obtain the results after the thread is finished running.
+        """
+        x = self.result_queue.get()
+        y = self.result_queue.get()
+        filename_y = self.result_queue.get()
+        overallMaxlen = self.result_queue.get()
+        num_hit = self.result_queue.get()
+        unk_hit = self.result_queue.get()
+        total = self.result_queue.get()
+        total_len = self.result_queue.get()
+        num_files = self.result_queue.get()
+        logger.info('Thread ' + str(self.threadID) + ' : Dataset is retrieved from queue successfully')
+        return x, y, filename_y, overallMaxlen, num_hit, unk_hit, total, total_len, num_files
+
+class ReadDatasetFolder(object):
+    """
+    A class to multithread read_dataset_file_list method (basically split reading a folder of files)
+    Please take note of the multiprocessing implementation as join() was not used
+    """
+    def __init__(self, dir_path, maxlen, vocab, tokenize_text, to_lower):
+        """
+        Constructor to initialize necessary information to start reading dataset
+        """
+        
+        # Read dataset arguments
+        self.dir_path = dir_path
+        self.maxlen = maxlen
+        self.vocab = vocab
+        self.tokenize_text = tokenize_text
+        self.to_lower = to_lower
+        self.file_list_collection = []
+        self.overallMaxlen = 0
+
+        # Leaving 2 free threads for other purposes
+        self.num_cpu = multiprocessing.cpu_count() - 2
+        if self.num_cpu <= 0:
+            self.num_cpu = 1
+
+        file_list_full = []
+        # Reading data in the specified folder
+        dir_path_curr = glob.glob(dir_path)
+        # Traverse every file in the directory
+        for file_path in dir_path_curr:
+            file_list_full.append(file_path) # Keep track of the filename
+        
+        batch_size = len(file_list_full) // (self.num_cpu)
+        if (len(file_list_full) % self.num_cpu > 0): batch_size += 1
+        
+        self.file_list_collection = [file_list_full[i:i+batch_size] for i in xrange(0, len(file_list_full), batch_size)]
+
+    def read_dataset_multithread(self):
+        threadCollection = [None] * len(self.file_list_collection)
+        for threadNum in xrange(len(self.file_list_collection)):
+            threadCollection[threadNum] = ReadDatasetFileListThread(threadNum, self.dir_path,
+                self.file_list_collection[threadNum], self.maxlen, self.vocab, self.tokenize_text, self.to_lower)
+            threadCollection[threadNum].start()
+
+        data_x, data_y, filename_y = [], [], []
+        num_hit, unk_hit, total = 0., 0., 0.
+        maxlen_x = -1
+        total_len = 0
+        num_files = 0
+
+        for threadNum in xrange(len(self.file_list_collection)):
+            x, y, curr_filename_y, overallMaxlen, curr_num_hit, curr_unk_hit, curr_total, curr_total_len, curr_num_files = threadCollection[threadNum].get_dataset()
+            data_x = data_x + x
+            data_y = data_y + y
+            filename_y = filename_y + curr_filename_y
+            if maxlen_x < overallMaxlen:
+                maxlen_x = overallMaxlen
+            num_hit += curr_num_hit
+            unk_hit += curr_unk_hit
+            total += curr_total
+            total_len += curr_total_len
+            num_files += curr_num_files
+        
+        logger.info("Average length for %s is %.5f" % (self.dir_path, (total_len / num_files)))
+        return data_x, data_y, filename_y, maxlen_x, num_hit, unk_hit, total
+
+
+###############################################################################
+## END Multithread class for reading datasets
+###############################################################################
+
+
 ###############################################################################
 ## FUNCTIONS for PREPROCESSING / TOKENIZING WORDS
 #
@@ -192,6 +332,65 @@ def create_vocab(dir_path, vocab_size, tokenize_text, to_lower):
         index += 1
 
     return vocab
+
+def read_dataset_file_list(file_list, maxlen, vocab, tokenize_text, to_lower, thread_id = 0, char_level=False):
+    """
+    Read dataset from a specified list of filenames/path. 
+    """
+
+    data_x, data_y, filename_y = [], [], []
+    num_hit, unk_hit, total = 0., 0., 0.
+    maxlen_x = -1
+    total_len = 0
+    num_files = 0
+
+    # Traverse every file in the directory
+    for file_path in file_list:
+        ###################################################
+        ## BEGIN READ FREE-TEXT
+        #
+        indices = []
+        with codecs.open(file_path, mode='r', encoding='ISO-8859-1') as input_file:
+            for line in input_file:
+                content = line
+               
+                if to_lower:
+                    content = content.lower()
+                if tokenize_text:
+                    content = tokenize(content)
+                else:
+                    content = content.split()
+                if maxlen > 0 and len(content) > maxlen:
+                    continue
+                
+                for word in content:
+                    if word in vocab:
+                        indices.append(vocab[word])
+                        if (word == '<num>'): num_hit += 1
+                    else:
+                        indices.append(vocab['<unk>'])
+                        unk_hit += 1
+                    total += 1
+                # if this line is not a blank
+                if (len(content) > 0) and ('<newline>' in vocab):
+                    indices.append(vocab['<newline>'])
+
+            data_x.append(indices)
+            if ("pos/*" in file_path):
+                data_y.append(float(1))
+            elif ("neg/*" in file_path):
+                data_y.append(float(0))
+            else:
+                data_y.append(float(-1))
+            filename_y.append(input_file.name) # Keep track of the filename
+
+            if maxlen_x < len(indices):
+                maxlen_x = len(indices)
+            total_len += len(indices)
+            num_files += 1
+
+    return data_x, data_y, filename_y, maxlen_x, num_hit, unk_hit, total, total_len, num_files
+
 
 def read_dataset_folder(dir_path, maxlen, vocab, tokenize_text, to_lower, thread_id = 0, char_level=False):
     """

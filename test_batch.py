@@ -44,7 +44,9 @@ with open(args.vocab_path, 'rb') as vocab_file:
 logger.info("Loading vocab completed!")
 
 logger.info("Loading dataset...")
-test_x, test_y, test_filename_y, _, _, _, _ = dataset_reader.read_dataset_folder(args.test_path + "/*", 0, vocab, True, True)
+# test_x, test_y, test_filename_y, _, _, _, _ = dataset_reader.read_dataset_folder(args.test_path + "/*", 0, vocab, True, True)
+datasetMulti = dataset_reader.ReadDatasetFolder(args.test_path + "/*", 0, vocab, True, True)
+test_x, test_y, test_filename_y, _, _, _, _ = datasetMulti.read_dataset_multithread()
 
 test_x, test_y, test_filename_y, _ = (
     helper.sort_and_split_data_into_chunks(
