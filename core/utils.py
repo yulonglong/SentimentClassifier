@@ -17,15 +17,15 @@ def set_logger(out_dir=None):
     console_format = BColors.OKBLUE + '[%(levelname)s]' + BColors.ENDC + ' (%(name)s) (%(asctime)s) %(message)s'
     #datefmt='%Y-%m-%d %Hh-%Mm-%Ss'
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
+    console.setLevel(logging.INFO)
     console.setFormatter(logging.Formatter(console_format, datefmt='%d/%m %I:%M:%S %p'))
     logger.addHandler(console)
     if out_dir:
         file_format = '[%(levelname)s] (%(name)s) (%(asctime)s) %(message)s'
         log_file = logging.FileHandler(out_dir + '/log.txt', mode='w')
-        log_file.setLevel(logging.DEBUG)
+        log_file.setLevel(logging.INFO)
         log_file.setFormatter(logging.Formatter(file_format, datefmt='%d/%m %I:%M:%S %p'))
         logger.addHandler(log_file)
 
