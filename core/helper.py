@@ -308,3 +308,121 @@ def get_permutation_list(args, train_y):
     logger.info('Creating and saving shuffle permutation list completed!')
     return permutation_list
 
+def get_reverse_vocab(vocab):
+    """
+    Given a vocab list (e.g., {'word': index}), reverse it and return
+    (e.g., { index: 'word'})
+    """
+    reverse_vocab = {0:'<pad>', 1:'<unk>', 2:'<num>', 3:'<newline>'}
+    for word, index in vocab.iteritems():
+        reverse_vocab[index] = word
+    return reverse_vocab
+
+def do_attention_visualization(attention_weights, test_x, vocab, filename_list, score_list, output_foldername='test_output'):
+    """
+    Given a set of attention weights, vocab, and other miscellaneous attributes,
+    this function creates PDF files to visualize the words
+    based on the attention weights in the specified directory
+    """
+    # Make sure the dimension of attention weights and the test set is the same
+    assert (test_x.shape == attention_weights.shape)
+
+    # Get reverse vocab
+    reverse_vocab = get_reverse_vocab(vocab)
+
+    num_essays = test_x.shape[0]
+    num_words = test_x.shape[1]
+
+    # Import all the necessary libraries for plotting
+    import matplotlib
+    matplotlib.use('Agg')
+
+    import matplotlib.pyplot as plt
+    from matplotlib.backends.backend_pdf import PdfPages
+
+    # Loop the number of essays/reviews so that we can reuse the code for the batch processing
+    for i in range(num_essays):
+        curr_filename = filename_list[i] # Only one file, so use the original filename
+        scaled_pred = score_list[i] # no scaled_prediction in this case, need to modify when threshold is not 0.5
+        pred_string = "positive"
+        if (scaled_pred < 50.0): pred_string = "negative"
+
+        word_sequence = []
+        attention_weights_normalized = []
+        attention_weights_max = 0.0
+        # Get the max value of the attention weights
+        for j in range(num_words):
+            if attention_weights_max < attention_weights[i][j]:
+                attention_weights_max = attention_weights[i][j]
+        # Encode the normalized weights for the words ignoring the padding
+        for j in range(num_words):
+            current_word = reverse_vocab[test_x[i][j]].encode('utf-8', 'ignore')
+            if current_word == '<pad>':
+                continue
+            word_sequence.append(current_word)
+            attention_weights_normalized.append(attention_weights[i][j]/float(attention_weights_max))
+
+        assert len(word_sequence) == len(attention_weights_normalized)
+        current_num_words = len(word_sequence)
+
+        # Create PDF document
+        pdf_pages = PdfPages(output_foldername +'/' + str(curr_filename) + '.pdf')
+        j = 0
+        done = False
+        page = 0
+
+        while not done:
+            # A4 size to be printed on paper, dpi somehow cant increase beyond 100, therefore increasing the plot size
+            # All numbers are magic numbers according to trial and error
+            fig = plt.figure(figsize=(8.27*3, 11.69*3), dpi=100)
+            curr_x = 0.005
+            curr_y = 0.98
+            plt.axes([0.025,0.025,0.95,0.95])
+            plt.axis('off')
+            while j < current_num_words:
+                word = word_sequence[j]
+                # If new line, print new line and continue
+                if word == '<newline>':
+                    curr_x = 0.005
+                    curr_y -= 0.02
+                    j += 1
+                    continue
+
+                # print words with the background colour
+                word_len = len(word)
+                t = plt.text(curr_x, curr_y, word, ha='left', va='center', color="#000000", alpha=1.0,
+                        transform=plt.gca().transAxes, fontsize=30)
+                t.set_bbox(dict(color='red', alpha=attention_weights_normalized[j]))
+
+                # increase xy coordinate for the next text
+                curr_x += (word_len**(0.75)) *0.022
+                if (curr_x > 0.90):
+                    curr_x = 0.005
+                    curr_y -= 0.02
+
+                j += 1
+
+                if (curr_y < 0.01):
+                    break
+
+            # Show in the picture the prediction value and the filename
+            if page == 0:
+                ymin, ymax = plt.ylim()
+                xmin, xmax = plt.xlim()
+                plt.text(
+                    xmin, ymax, 'ID : %s     Prediction : %s    Prediction score: %.4f%%' %
+                    (curr_filename, pred_string, scaled_pred) , fontsize=30, style='normal',
+                    bbox={'facecolor':'yellow', 'alpha':1.0, 'pad':10})
+
+            pdf_pages.savefig(fig)
+            plt.close(fig)
+            page += 1
+
+            if j == current_num_words: done = True
+        
+        pdf_pages.close()
+
+        logger.info('Created Attention PDF file: ' + output_foldername + curr_filename + '.pdf' + '(' + str(page) + ' pages)')
+
+
+        
