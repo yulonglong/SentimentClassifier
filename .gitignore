@@ -2,3 +2,6 @@ data/
 *.txt
 *.pyc
 *.h5
+*.csv
+*.pdf
+*.tsv
