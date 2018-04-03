@@ -347,19 +347,21 @@ def create_vocab_file_list(file_list, tokenize_text, to_lower):
         with codecs.open(file_path, mode='r', encoding='ISO-8859-1') as input_file:
             # logger.info(input_file)
             for line in input_file:
-                content = line
-                if to_lower:
-                    content = content.lower()
-                if tokenize_text:
-                    content = tokenize(content)
-                else:
-                    content = content.split()
-                for word in content:
-                    try:
-                        word_freqs[word] += 1
-                    except KeyError:
-                        word_freqs[word] = 1
-                    total_words += 1
+                splitBrLine = line.replace("<br />", "\n").replace("<br/>", "\n").replace("<br>", "\n").split("\n")
+                for subline in splitBrLine:
+                    content = subline
+                    if to_lower:
+                        content = content.lower()
+                    if tokenize_text:
+                        content = tokenize(content)
+                    else:
+                        content = content.split()
+                    for word in content:
+                        try:
+                            word_freqs[word] += 1
+                        except KeyError:
+                            word_freqs[word] = 1
+                        total_words += 1
            
     # Pop the <num> string because going to be added later
     if '<num>' in  word_freqs: word_freqs.pop('<num>')
@@ -384,28 +386,30 @@ def read_dataset_file_list(file_list, maxlen, vocab, tokenize_text, to_lower, th
         indices = []
         with codecs.open(file_path, mode='r', encoding='ISO-8859-1') as input_file:
             for line in input_file:
-                content = line
-               
-                if to_lower:
-                    content = content.lower()
-                if tokenize_text:
-                    content = tokenize(content)
-                else:
-                    content = content.split()
-                if maxlen > 0 and len(content) > maxlen:
-                    continue
+                splitBrLine = line.replace("<br />", "\n").replace("<br/>", "\n").replace("<br>", "\n").split("\n")
+                for subline in splitBrLine:
+                    content = subline
                 
-                for word in content:
-                    if word in vocab:
-                        indices.append(vocab[word])
-                        if (word == '<num>'): num_hit += 1
+                    if to_lower:
+                        content = content.lower()
+                    if tokenize_text:
+                        content = tokenize(content)
                     else:
-                        indices.append(vocab['<unk>'])
-                        unk_hit += 1
-                    total += 1
-                # if this line is not a blank
-                if (len(content) > 0) and ('<newline>' in vocab):
-                    indices.append(vocab['<newline>'])
+                        content = content.split()
+                    if maxlen > 0 and len(content) > maxlen:
+                        continue
+                    
+                    for word in content:
+                        if word in vocab:
+                            indices.append(vocab[word])
+                            if (word == '<num>'): num_hit += 1
+                        else:
+                            indices.append(vocab['<unk>'])
+                            unk_hit += 1
+                        total += 1
+                    # if this line is not a blank
+                    if ('<newline>' in vocab):
+                        indices.append(vocab['<newline>'])
 
             data_x.append(indices)
             if ("pos" in file_path):
@@ -477,25 +481,28 @@ def read_dataset_single(file_path, vocab, tokenize_text, to_lower, char_level=Fa
     indices = []
     with codecs.open(file_path, mode='r', encoding='ISO-8859-1') as input_file:
         for line in input_file:
-            content = line     
-            if to_lower:
-                content = content.lower()
-            if tokenize_text:
-                content = tokenize(content)
-            else:
-                content = content.split()
-
-            for word in content:
-                if word in vocab:
-                    indices.append(vocab[word])
+            splitBrLine = line.replace("<br />", "\n").replace("<br/>", "\n").replace("<br>", "\n").split("\n")
+            for subline in splitBrLine:
+                content = subline
+                # print(content)
+                if to_lower:
+                    content = content.lower()
+                if tokenize_text:
+                    content = tokenize(content)
                 else:
-                    if isAllDigit(word):
-                        indices.append(vocab['<num>'])
+                    content = content.split()
+
+                for word in content:
+                    if word in vocab:
+                        indices.append(vocab[word])
                     else:
-                        indices.append(vocab['<unk>'])
-                            # if this line is not a blank
-            if (len(content) > 0) and ('<newline>' in vocab):
-                indices.append(vocab['<newline>'])
+                        if isAllDigit(word):
+                            indices.append(vocab['<num>'])
+                        else:
+                            indices.append(vocab['<unk>'])
+                                # if this line is not a blank
+                if ('<newline>' in vocab):
+                    indices.append(vocab['<newline>'])
         data_x.append(indices)
 
     return data_x
@@ -627,18 +634,20 @@ def tokenize_dataset(file_path, output_path, to_lower=True):
 
     with codecs.open(file_path, mode='r', encoding='ISO-8859-1') as input_file:
         for line in input_file:
-            content = line
+            splitBrLine = line.replace("<br />", "\n").replace("<br/>", "\n").replace("<br>", "\n").split("\n")
+            for subline in splitBrLine:
+                content = subline
 
-            if to_lower:
-                content = content.lower()
+                if to_lower:
+                    content = content.lower()
 
-            content = tokenize(content)
+                content = tokenize(content)
 
-            for word in content:
-                if isContainDigit(word):
-                    output.write('<num>')
-                else:
-                    output.write((word).encode("utf8"))
-                output.write(' ')
+                for word in content:
+                    if isContainDigit(word):
+                        output.write('<num>')
+                    else:
+                        output.write((word).encode("utf8"))
+                    output.write(' ')
 
-            output.write('\n')
+                output.write('\n')
