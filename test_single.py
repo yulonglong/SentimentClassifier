@@ -31,7 +31,7 @@ from core.evaluator import Evaluator
 #######################################################################################
 ## Prepare data
 #
-t0 = time()
+t_start = time()
 
 logger.info("Loading vocab...")
 with open(args.vocab_path, 'rb') as vocab_file:
@@ -63,7 +63,7 @@ logger.info("Loading model completed!")
 ######################################################################################################
 ## Testing
 #
-t1 = time()
+t_pred_start = time()
 
 pytorch_test_x = torch.from_numpy(test_x.astype('int64'))
 pytorch_test_x = Variable(pytorch_test_x)
@@ -80,6 +80,8 @@ else:
 #############################################################################################
 ## Start Attention Visualization
 #
+
+t_attention_start = time()
 
 logger.info("Processing attention visualization...")
 
@@ -99,15 +101,20 @@ helper.do_attention_visualization(attention_weights, test_x, vocab, filename_lis
 
 #############################################################################################
 
-preparation_time = t1 - t0
+t_end = time()
+
+preparation_time = t_pred_start - t_start
 preparation_time_minutes = preparation_time/60
-prediction_time = time() - t1
+prediction_time = t_attention_start - t_pred_start
 prediction_time_minutes = prediction_time/60
-total_time = time() - t0
+attention_time = t_end - t_attention_start
+attention_time_minutes = attention_time/60
+total_time = t_end - t_start
 total_time_minutes = total_time/60
 
 logger.info('------------------------------------------------------------------------')
-logger.info('Preparation time : %i seconds in total (%.1f minutes)' % (preparation_time, preparation_time_minutes))
-logger.info('Prediction time  : %i seconds in total (%.1f minutes)' % (prediction_time, prediction_time_minutes))
-logger.info('Total time       : %i seconds in total (%.1f minutes)' % (total_time, total_time_minutes))
+logger.info('Preparation time  : %i seconds in total (%.1f minutes)' % (preparation_time, preparation_time_minutes))
+logger.info('Prediction time   : %i seconds in total (%.1f minutes)' % (prediction_time, prediction_time_minutes))
+logger.info('AttentionViz time : %i seconds in total (%.1f minutes)' % (attention_time, attention_time_minutes))
+logger.info('Total time        : %i seconds in total (%.1f minutes)' % (total_time, total_time_minutes))
 logger.info('------------------------------------------------------------------------')
