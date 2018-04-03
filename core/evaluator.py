@@ -113,13 +113,15 @@ class Evaluator(object):
     def dump_ref_filenames(self):
         """Dump/print the reference (ground truth) filenames to a file"""
         dev_ref_filename_file = open(self.out_dir + '/preds/dev_ref_filenames.txt', "w")
-        for dev_filename in self.dev_filename_y:
-            dev_ref_filename_file.write(dev_filename + '\n')
+        for idx, _ in enumerate(self.dev_filename_y):
+            for dev_filename in self.dev_filename_y[idx]:
+                dev_ref_filename_file.write(dev_filename + '\n')
         dev_ref_filename_file.close()
 
         test_ref_filename_file = open(self.out_dir + '/preds/test_ref_filenames.txt', "w")
-        for test_filename in self.test_filename_y:
-            test_ref_filename_file.write(test_filename + '\n')
+        for idx, _ in enumerate(self.test_filename_y):
+            for test_filename in self.test_filename_y[idx]:
+                test_ref_filename_file.write(test_filename + '\n')
         test_ref_filename_file.close()
 
     def dump_ref_scores(self):

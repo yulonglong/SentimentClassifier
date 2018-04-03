@@ -35,7 +35,7 @@ from core.evaluator import Evaluator
 ## Prepare data
 #
 
-t0 = time()
+t_start = time()
 
 logger.info("Loading vocab...")
 with open(args.vocab_path, 'rb') as vocab_file:
@@ -52,6 +52,12 @@ test_x, test_y, test_filename_y, _ = (
     helper.sort_and_split_data_into_chunks(
         test_x, test_y, test_filename_y, args.batch_size)
 )
+
+# Combine 2D List into one 1D list
+combined_test_filename_y = []
+for batch_filename in test_filename_y:
+    combined_test_filename_y += batch_filename
+
 logger.info("Loading dataset completed!")
 
 ######################################################################################################
@@ -69,8 +75,11 @@ logger.info("Loading model completed!")
 ######################################################################################################
 ## Testing
 #
-t1 = time()
+t_pred_start = time()
 test_pred = np.array([])
+
+score_list = []
+attention_weights = []
 
 logger.info("Predicting scores...")
 for idx, _ in enumerate(test_x):
@@ -78,11 +87,18 @@ for idx, _ in enumerate(test_x):
     curr_test_pred = model(Variable(pytorch_test_x))
     curr_test_pred = curr_test_pred.cpu().data.numpy()
     test_pred = np.append(test_pred, curr_test_pred)
+
+    # Get necessary data for Attention Visualization
+    curr_score = [x * 100.0 for x in curr_test_pred]
+    score_list.append(curr_score)
+    # Get attention weights
+    curr_attention_weights = model.att_weights.data.numpy()
+    attention_weights.append(curr_attention_weights)
 logger.info("Prediction completed...")
 
 # Sort the prediction result based on filename
-assert len(test_pred) == len(test_filename_y)
-filename_result, pred_result = (list(t) for t in zip(*sorted(zip(test_filename_y, test_pred))))
+assert len(test_pred) == len(combined_test_filename_y)
+filename_result, pred_result = (list(t) for t in zip(*sorted(zip(combined_test_filename_y, test_pred))))
 
 with open(output_foldername + "result.csv", "w") as outfile:
     assert len(filename_result) == len(pred_result)
@@ -92,15 +108,42 @@ with open(output_foldername + "result.csv", "w") as outfile:
     logger.info(str(len(filename_result)) + " files has been reviewed successfully.")
     logger.info("Results are saved in " + U.BColors.BOKGREEN + output_foldername + "result.csv")
 
-preparation_time = t1 - t0
+
+#############################################################################################
+## Start Attention Visualization
+#
+
+t_attention_start = time()
+
+logger.info("Processing attention visualization...")
+
+# Create output folder
+output_foldername = 'test_batch_output/'
+U.mkdir_p(output_foldername)
+
+# Do attention visualization and export to pdf
+# Uncomment the two lines below for attention visualization which will take a while depending on the size of the test set
+# for idx, _ in enumerate(test_x):
+#     helper.do_attention_visualization(attention_weights[idx], test_x[idx], vocab, test_filename_y[idx], score_list[idx], output_foldername=output_foldername)
+
+logger.info("Attention visualization completed!")
+
+#############################################################################################
+
+t_end = time()
+
+preparation_time = t_pred_start - t_start
 preparation_time_minutes = preparation_time/60
-prediction_time = time() - t1
+prediction_time = t_attention_start - t_pred_start
 prediction_time_minutes = prediction_time/60
-total_time = time() - t0
+attention_time = t_end - t_attention_start
+attention_time_minutes = attention_time/60
+total_time = t_end - t_start
 total_time_minutes = total_time/60
 
 logger.info('------------------------------------------------------------------------')
-logger.info('Preparation time : %i seconds in total (%.1f minutes)' % (preparation_time, preparation_time_minutes))
-logger.info('Prediction time  : %i seconds in total (%.1f minutes)' % (prediction_time, prediction_time_minutes))
-logger.info('Total time       : %i seconds in total (%.1f minutes)' % (total_time, total_time_minutes))
+logger.info('Preparation time  : %i seconds in total (%.1f minutes)' % (preparation_time, preparation_time_minutes))
+logger.info('Prediction time   : %i seconds in total (%.1f minutes)' % (prediction_time, prediction_time_minutes))
+logger.info('AttentionViz time : %i seconds in total (%.1f minutes)' % (attention_time, attention_time_minutes))
+logger.info('Total time        : %i seconds in total (%.1f minutes)' % (total_time, total_time_minutes))
 logger.info('------------------------------------------------------------------------')

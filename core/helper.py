@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import argparse
 import logging
 import numpy as np
@@ -123,7 +126,7 @@ def sort_data_given_index(x, y, perm_index, lab_x=None):
 
     return train_x, train_y, train_lab_x
 
-def split_data_into_chunks(x, y, batch_size, combine_y=True, lab_x=None):
+def split_data_into_chunks(x, y, batch_size, combine_y=True, filename_y=None, lab_x=None):
     """
     Split data into chunks/batches (with the specified batch size) for mini-batch processing in neural network.
     """
@@ -135,6 +138,11 @@ def split_data_into_chunks(x, y, batch_size, combine_y=True, lab_x=None):
     test_y_chunks = list(chunks(y, batch_size))
     test_y = []
     test_y_len = 0
+
+    test_filename_y_chunks = None
+    test_filename_y = []
+    test_filename_y_len = 0
+    if not (filename_y is None): test_filename_y_chunks = list(chunks(filename_y, batch_size))
 
     test_lab_x_chunks = None
     test_lab_x = []
@@ -154,6 +162,11 @@ def split_data_into_chunks(x, y, batch_size, combine_y=True, lab_x=None):
         test_y.append(curr_test_y)
         test_y_len += len(curr_test_y)
 
+        if not (filename_y is None):
+            curr_test_filename_y = test_filename_y_chunks[i]
+            test_filename_y.append(curr_test_filename_y)
+            test_filename_y_len += len(curr_test_filename_y)
+
         if not (lab_x is None):
             curr_test_lab_x = test_lab_x_chunks[i]
             curr_test_lab_x = np.array(curr_test_lab_x, dtype='float32')
@@ -162,13 +175,16 @@ def split_data_into_chunks(x, y, batch_size, combine_y=True, lab_x=None):
 
     assert test_x_len == test_y_len
     assert test_x_len == len(y)
+
+    if not (filename_y is None):
+        assert test_x_len == test_filename_y_len
     if not (lab_x is None):
         assert test_x_len == test_lab_x_len
 
     if (combine_y):
         test_y = np.array(y, dtype='float32')
 
-    return test_x, test_y, test_lab_x
+    return test_x, test_y, test_filename_y, test_lab_x
 
 def sort_and_split_data_into_chunks(x, y, filename_y, batch_size, lab_x=None):
     """
@@ -180,7 +196,7 @@ def sort_and_split_data_into_chunks(x, y, filename_y, batch_size, lab_x=None):
     test_lab_x = None
     test_x, test_y, test_filename_y, test_lab_x = sort_data(x, y, filename_y, lab_x=lab_x)
 
-    test_x, test_y, test_lab_x = split_data_into_chunks(test_x, test_y, batch_size, lab_x=test_lab_x)
+    test_x, test_y, test_filename_y, test_lab_x = split_data_into_chunks(test_x, test_y, batch_size, filename_y=test_filename_y, lab_x=test_lab_x)
     return test_x, test_y, test_filename_y, test_lab_x
 
 def calculate_performance(tps, fps, fns, tns):
@@ -337,12 +353,16 @@ def do_attention_visualization(attention_weights, test_x, vocab, filename_list, 
     import matplotlib
     matplotlib.use('Agg')
 
+    import os
     import matplotlib.pyplot as plt
     from matplotlib.backends.backend_pdf import PdfPages
 
     # Loop the number of essays/reviews so that we can reuse the code for the batch processing
     for i in range(num_essays):
-        curr_filename = filename_list[i] # Only one file, so use the original filename
+        filepath = filename_list[i] # Only one file, so use the original filename
+        base = os.path.basename(filepath)
+        curr_filename = os.path.splitext(base)[0]
+        
         scaled_pred = score_list[i] # no scaled_prediction in this case, need to modify when threshold is not 0.5
         pred_string = "positive"
         if (scaled_pred < 50.0): pred_string = "negative"
@@ -380,7 +400,7 @@ def do_attention_visualization(attention_weights, test_x, vocab, filename_list, 
             plt.axes([0.025,0.025,0.95,0.95])
             plt.axis('off')
             while j < current_num_words:
-                word = word_sequence[j]
+                word = word_sequence[j].decode("utf8").encode("ascii","ignore")
                 # If new line, print new line and continue
                 if word == '<newline>':
                     curr_x = 0.005
@@ -422,7 +442,7 @@ def do_attention_visualization(attention_weights, test_x, vocab, filename_list, 
         
         pdf_pages.close()
 
-        logger.info('Created Attention PDF file: ' + output_foldername + curr_filename + '.pdf' + '(' + str(page) + ' pages)')
+        logger.info('Created Attention PDF file: ' + output_foldername + curr_filename + '.pdf' + ' (' + str(page) + ' pages)')
 
 
         

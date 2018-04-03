@@ -43,10 +43,8 @@ test_x = dataset_reader.read_dataset_single(args.test_path, vocab, True, True)
 # make duplicate of the same set so it doesnt get squeezed in the model if batch size is 1
 test_x = np.array([test_x, test_x]).squeeze()
 
-# Get just the filename without path and trailing file format
-base = os.path.basename(args.test_path)
-filename = os.path.splitext(base)[0]
-filename_list = [filename, filename] # make duplicate to match the test_x format
+# Get the filename
+filename_list = [args.test_path, args.test_path] # make duplicate to match the test_x format
 
 ######################################################################################################
 ## Load model
@@ -99,6 +97,7 @@ assert (test_x.shape == attention_weights.shape)
 # Do attention visualization and export to pdf
 helper.do_attention_visualization(attention_weights, test_x, vocab, filename_list, score_list, output_foldername=output_foldername)
 
+logger.info("Attention visualization completed!")
 #############################################################################################
 
 t_end = time()

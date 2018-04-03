@@ -233,7 +233,7 @@ for ii in range(args.epochs):
     curr_perm = permutation_list[ii]
     # Split data and dynamically pad based on the batch size
     perm_train_x, perm_train_y, _ = helper.sort_data_given_index(train_x, train_y, curr_perm)
-    train_x_list, train_y_list, _ = helper.split_data_into_chunks(perm_train_x, perm_train_y, args.batch_size, combine_y=False)
+    train_x_list, train_y_list, _, _ = helper.split_data_into_chunks(perm_train_x, perm_train_y, args.batch_size, combine_y=False)
 
     t0 = time()
 
