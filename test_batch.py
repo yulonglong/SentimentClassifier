@@ -20,6 +20,7 @@ parser.add_argument("-v", "--vocab-path", dest="vocab_path", type=str, metavar='
 parser.add_argument("-m", "--model-path", dest="model_path", type=str, metavar='<str>', required=True, help="The path to the model file")
 parser.add_argument("-ts", "--test", dest="test_path", type=str, metavar='<str>', required=True, help="The path to the test file")
 parser.add_argument("-b", "--batch-size", dest="batch_size", type=int, metavar='<int>', default=192, help="Batch size for testing (default=192). Increase the value for faster processing if you have larger RAM size.")
+parser.add_argument("-a", "--attention-visualize", dest="is_attention_visualize", action='store_true', help="Flag to visualize attention (Note the process will be multithreaded by the number of test samples divided by the batch size)")
 
 args = parser.parse_args()
 
@@ -115,18 +116,42 @@ with open(output_foldername + "result.csv", "w") as outfile:
 
 t_attention_start = time()
 
-logger.info("Processing attention visualization...")
+if (args.is_attention_visualize):
+    logger.info("Processing attention visualization...")
 
-# Create output folder
-output_foldername = 'test_batch_output/'
-U.mkdir_p(output_foldername)
+    # Create output folder
+    output_foldername = 'test_batch_output/'
+    U.mkdir_p(output_foldername)
 
-# Do attention visualization and export to pdf
-# Uncomment the two lines below for attention visualization which will take a while depending on the size of the test set
-# for idx, _ in enumerate(test_x):
-#     helper.do_attention_visualization(attention_weights[idx], test_x[idx], vocab, test_filename_y[idx], score_list[idx], output_foldername=output_foldername)
+    import multiprocessing
+    class CreateAttentionVizThread (multiprocessing.Process):
+        """
+        A class to multithread attention visualization
+        """
+        def __init__(self, attention_weights, test_x, vocab, test_filename_y, score_list, output_foldername):
+            multiprocessing.Process.__init__(self)
+            self.attention_weights = attention_weights
+            self.test_x = test_x
+            self.vocab = vocab
+            self.test_filename_y = test_filename_y
+            self.score_list = score_list
+            self.output_foldername = output_foldername
 
-logger.info("Attention visualization completed!")
+        def run(self):
+            helper.do_attention_visualization(self.attention_weights, self.test_x,
+                self.vocab, self.test_filename_y, self.score_list, output_foldername=self.output_foldername)
+
+    # Do attention visualization and export to pdf
+    # Uncomment the two lines below for attention visualization which will take a while depending on the size of the test set
+    # for idx, _ in enumerate(test_x):
+    #     helper.do_attention_visualization(attention_weights[idx], test_x[idx], vocab, test_filename_y[idx], score_list[idx], output_foldername=output_foldername)
+
+    threadCollection = [None] * len(test_x)
+    for idx, _ in enumerate(test_x):
+        threadCollection[idx] = CreateAttentionVizThread(attention_weights[idx], test_x[idx], vocab, test_filename_y[idx], score_list[idx], output_foldername=output_foldername)
+        threadCollection[idx].start()
+
+    logger.info("Attention visualization completed!")
 
 #############################################################################################
 

@@ -16,6 +16,8 @@ python test_single.py \
 
 echo "(run_test.sh): Starting test on 50,000 reviews..."
 echo "(run_test.sh): This is going to take a while, please be patient..."
+echo "(run_test.sh): If you would like to visualize attention, please add '-a' argument in the command"
+echo "(run_test.sh): Note that you need a lot of computing power to create 50,000 PDF attention visualization"
 # Batch Review
 python test_batch.py \
 -v best_model/vocab_v50000.pkl \
