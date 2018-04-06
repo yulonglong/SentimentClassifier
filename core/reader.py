@@ -11,8 +11,8 @@ import copy
 import os
 import math
 
-import text_cleaner as text_cleaner
-import vocab_processor as vocab_processor
+import core.text_cleaner as text_cleaner
+import core.vocab_processor as vocab_processor
 
 # for multithreading
 import multiprocessing
