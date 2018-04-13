@@ -141,6 +141,7 @@ class Net(nn.Module):
         self.batch_number = None
         self.model_type = args.model_type
         self.pooling_type = args.pooling_type
+        self.dropout_rate = args.dropout_rate
         self.att_weights = None # Attribute to save attention weights
 
         self.lookup_table = nn.Embedding(args.vocab_size, args.emb_dim)
@@ -253,7 +254,7 @@ class Net(nn.Module):
             for curr_cnn in self.cnn:
                 prevConv = conv
                 conv     = self.convWrapper(curr_cnn, conv)
-                conv     = self.tensorLogger("dropout",         F.dropout(conv, training=training))
+                conv     = self.tensorLogger("dropout",         F.dropout(conv, p=self.dropout_rate, training=training))
             
         recc     = conv
 
@@ -261,16 +262,16 @@ class Net(nn.Module):
             for curr_rnn in self.rnn:
                 prevRecc = recc
                 recc     = self.lstmWrapper(curr_rnn, recc)
-                recc     = self.tensorLogger("dropout",         F.dropout(recc, training=training))
+                recc     = self.tensorLogger("dropout",         F.dropout(recc, p=self.dropout_rate, training=training))
 
         if self.model_type == 'crcrnn':
             assert (len(self.cnn) == len(self.rnn))
             for i in xrange(len(self.cnn)):
                 prevConv = conv
                 conv     = self.convWrapper(self.cnn[i], conv)
-                conv     = self.tensorLogger("dropout",         F.dropout(conv, training=training))
+                conv     = self.tensorLogger("dropout",         F.dropout(conv, p=self.dropout_rate, training=training))
                 conv     = self.lstmWrapper(self.rnn[i], conv)
-                conv     = self.tensorLogger("dropout",         F.dropout(conv, training=training))
+                conv     = self.tensorLogger("dropout",         F.dropout(conv, p=self.dropout_rate, training=training))
             recc = conv
 
         if self.pooling_type == 'att':
