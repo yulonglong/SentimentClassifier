@@ -180,6 +180,14 @@ logger.info('  test_y shape:  ' + str(np_test_y.shape))
 logger.info('  train_y mean: %.3f, stdev: %.3f, MFC: %i' % (train_mean, train_std, most_frequent_class))
 
 ############################################################################################
+## Make sure the size of each mini-batch is more than 1 to prevent model crash
+# If the assertions below fail, please change to batch size to another number
+assert (np_train_y.shape[0] % args.batch_size != 1)
+assert (np_train_y.shape[0] % args.batch_size_eval != 1)
+assert (np_dev_y.shape[0] % args.batch_size_eval != 1)
+assert (np_test_y.shape[0] % args.batch_size_eval != 1)
+
+############################################################################################
 ## Compute class weight (where data is usually imbalanced)
 # Always imbalanced in medical text data
 
