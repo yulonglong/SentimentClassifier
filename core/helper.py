@@ -3,7 +3,7 @@ import logging
 import numpy as np
 from time import time
 import sys
-import utils as U
+from core import utils as U
 import pickle as pk
 import copy
 
@@ -83,7 +83,7 @@ def pad_sequences(sequences, maxlen=None, dtype='int32',
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
-    for i in xrange(0, len(l), n):
+    for i in range(0, len(l), n):
         yield l[i:i + n]
 
 def sort_data(x, y, filename_y, lab_x=None):
@@ -95,7 +95,8 @@ def sort_data(x, y, filename_y, lab_x=None):
         test_xy = zip(x, y, filename_y, lab_x)
 
     # Sort tuple based on the length of the first entry in the tuple
-    test_xy.sort(key=lambda t: len(t[0]))
+    test_xy = sorted(test_xy, key=lambda t: len(t[0]))
+
     if not (lab_x is None):
         test_x, test_y, test_filename_y, test_lab_x = zip(*test_xy)
     else:
@@ -280,7 +281,7 @@ def compute_class_weight(train_y):
     class_weight = dict()
 
     # Initialize all classes in the dictionary with weight 1
-    curr_max = np.max(class_list)
+    curr_max = int(np.max(class_list))
     for i in range(curr_max):
         class_weight[i] = 1
 
@@ -327,7 +328,7 @@ def get_reverse_vocab(vocab):
     (e.g., { index: 'word'})
     """
     reverse_vocab = {0:'<pad>', 1:'<unk>', 2:'<num>', 3:'<newline>'}
-    for word, index in vocab.iteritems():
+    for word, index in vocab.items():
         reverse_vocab[index] = word
     return reverse_vocab
 
@@ -397,7 +398,7 @@ def do_attention_visualization(attention_weights, test_x, vocab, filename_list, 
             plt.axes([0.025,0.025,0.95,0.95])
             plt.axis('off')
             while j < current_num_words:
-                word = word_sequence[j].decode("utf8").encode("ascii","ignore")
+                word = word_sequence[j].decode("utf8")
                 # If new line, print new line and continue
                 if word == '<newline>':
                     curr_x = 0.005

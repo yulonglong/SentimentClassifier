@@ -4,8 +4,8 @@ import logging
 import numpy as np
 from time import time
 import sys
-import core.utils as U
-import core.helper as helper
+from core import utils as U
+from core import helper as helper
 import pickle as pk
 import os.path
 
@@ -82,7 +82,7 @@ assert args.model_type in valid_model_type
 assert args.algorithm in {'rmsprop', 'adam'}
 assert args.pooling_type in { 'meanot', 'att'}
 
-import core.reader as dataset_reader
+from core import reader as dataset_reader
 from core.evaluator import Evaluator
 
 #######################################################################################
@@ -257,7 +257,7 @@ for ii in range(args.epochs):
         pytorch_weight = None
         if not args.no_class_weight:
             weight = copy.deepcopy(train_y_list[idx])
-            for key, value in class_weight.iteritems():
+            for key, value in class_weight.items():
                 indices = (weight == key)
                 weight[indices] = value
             weight = np.asarray(weight, dtype=np.float32)
@@ -278,7 +278,7 @@ for ii in range(args.epochs):
         loss = criterion(outputs, pytorch_train_y)
         loss.backward()
         optimizer.step()
-        train_loss_sum += loss.data[0]
+        train_loss_sum += loss.data.item()
 
     train_loss = train_loss_sum / (len(train_x_list))
 

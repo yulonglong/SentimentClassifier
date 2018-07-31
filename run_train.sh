@@ -56,7 +56,7 @@ train_maxlen="0"
 
 for rand in {1..1}
 do
-    CUDA_VISIBLE_DEVICES=${gpu_num} python train.py \
+    CUDA_VISIBLE_DEVICES=${gpu_num} python3 train.py \
     -tr data/aclImdb/train/ -tu data/aclImdb/valid/ -ts data/aclImdb/test/ \
     --emb word2vec/vectors/${word_embedding}.txt \
     -o expt${expt_num}${gpu_num}-emb${embedding_size}-${word_embedding}-p${pooling_type}-sentiment-seed${rand}${gpu_num}78-${gpu_name} \

@@ -29,7 +29,7 @@ U.mkdir_p(output_foldername)
 U.set_logger()
 U.print_args(args)
 
-import core.reader as dataset_reader
+from core import reader as dataset_reader
 from core.evaluator import Evaluator
 
 #######################################################################################
@@ -104,7 +104,7 @@ filename_result, pred_result = (list(t) for t in zip(*sorted(zip(combined_test_f
 with open(output_foldername + "result.csv", "w") as outfile:
     assert len(filename_result) == len(pred_result)
     outfile.write("Filename,Prediction\n")
-    for i in xrange(len(filename_result)):
+    for i in range(len(filename_result)):
         outfile.write('%s,%.4f\n' % (filename_result[i],pred_result[i]))
     logger.info(str(len(filename_result)) + " files has been reviewed successfully.")
     logger.info("Results are saved in " + U.BColors.BOKGREEN + output_foldername + "result.csv")

@@ -4,7 +4,7 @@ import codecs
 import glob
 import multiprocessing
 import logging
-import core.text_cleaner as text_cleaner
+from core import text_cleaner as text_cleaner
 
 logger = logging.getLogger(__name__)
 
@@ -131,26 +131,26 @@ class CreateVocab(object):
         batch_size = len(file_list_full) // (self.num_cpu)
         if (len(file_list_full) % self.num_cpu > 0): batch_size += 1
         
-        self.file_list_collection = [file_list_full[i:i+batch_size] for i in xrange(0, len(file_list_full), batch_size)]
+        self.file_list_collection = [file_list_full[i:i+batch_size] for i in range(0, len(file_list_full), batch_size)]
 
     def read_dataset_multithread(self):
         """
         The only function to call in this class other than initializing the class
         """
         threadCollection = [None] * len(self.file_list_collection)
-        for threadNum in xrange(len(self.file_list_collection)):
+        for threadNum in range(len(self.file_list_collection)):
             threadCollection[threadNum] = CreateVocabThread(threadNum, self.file_list_collection[threadNum], self.tokenize_text, self.to_lower)
             threadCollection[threadNum].start()
 
         word_freqs = {}
         total_words, unique_words = 0, 0
 
-        for threadNum in xrange(len(self.file_list_collection)):
+        for threadNum in range(len(self.file_list_collection)):
             curr_word_freqs, curr_total_words = threadCollection[threadNum].get_dataset()
             total_words += curr_total_words
             # logger.warning(threadNum)
             # logger.warning(curr_word_freqs)
-            for word, freq in curr_word_freqs.iteritems():
+            for word, freq in curr_word_freqs.items():
                 # logger.error(word)
                 if word in word_freqs:
                     word_freqs[word] = word_freqs[word] + freq

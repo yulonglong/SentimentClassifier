@@ -11,8 +11,8 @@ import copy
 import os
 import math
 
-import core.text_cleaner as text_cleaner
-import core.vocab_processor as vocab_processor
+from core import text_cleaner as text_cleaner
+from core import vocab_processor as vocab_processor
 
 # for multithreading
 import multiprocessing
@@ -123,14 +123,14 @@ class ReadDatasetFolder(object):
         batch_size = len(file_list_full) // (self.num_cpu)
         if (len(file_list_full) % self.num_cpu > 0): batch_size += 1
         
-        self.file_list_collection = [file_list_full[i:i+batch_size] for i in xrange(0, len(file_list_full), batch_size)]
+        self.file_list_collection = [file_list_full[i:i+batch_size] for i in range(0, len(file_list_full), batch_size)]
 
     def read_dataset_multithread(self):
         """
         The only function to call in this class other than initializing the class
         """
         threadCollection = [None] * len(self.file_list_collection)
-        for threadNum in xrange(len(self.file_list_collection)):
+        for threadNum in range(len(self.file_list_collection)):
             threadCollection[threadNum] = ReadDatasetFileListThread(threadNum, self.dir_path,
                 self.file_list_collection[threadNum], self.maxlen, self.vocab, self.tokenize_text, self.to_lower)
             threadCollection[threadNum].start()
@@ -141,7 +141,7 @@ class ReadDatasetFolder(object):
         total_len = 0
         num_files = 0
 
-        for threadNum in xrange(len(self.file_list_collection)):
+        for threadNum in range(len(self.file_list_collection)):
             x, y, curr_filename_y, overallMaxlen, curr_num_hit, curr_unk_hit, curr_total, curr_total_len, curr_num_files = threadCollection[threadNum].get_dataset()
             data_x = data_x + x
             data_y = data_y + y
@@ -398,7 +398,7 @@ def load_dataset(args):
 
         # Dump vocab
         # with open(args.out_dir_path + '/data/vocab_v'+ str(vocab_size) + '.txt', 'w') as vocab_data_file:
-        #     for key, value in sorted(vocab.iteritems()):
+        #     for key, value in sorted(vocab.items()):
         #         curr_line = key.encode('ISO-8859-1') + "," + str(value) + "\n"
         #         vocab_data_file.write(curr_line)
 

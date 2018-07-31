@@ -25,7 +25,7 @@ args = parser.parse_args()
 U.set_logger()
 U.print_args(args)
 
-import core.reader as dataset_reader
+from core import reader as dataset_reader
 from core.evaluator import Evaluator
 
 #######################################################################################

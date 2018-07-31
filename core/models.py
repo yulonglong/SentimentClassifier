@@ -81,7 +81,7 @@ class Attention(nn.Module):
     def forward(self, input):
         wplus = torch.mm(input.contiguous().view(-1, input.size()[2]), self.w)
         wplus = wplus.contiguous().view(-1, input.size()[1], self.w.size()[1])
-        wplus = F.tanh(wplus)
+        wplus = torch.tanh(wplus)
 
         att_w = torch.mm(wplus.contiguous().view(-1, wplus.size()[2]), self.v.contiguous().view(self.v.size()[0], 1))
         att_w = att_w.contiguous().view(-1, wplus.size()[1])
@@ -155,7 +155,7 @@ class Net(nn.Module):
                 self.cnn.append(nn.Conv2d(in_channels=1,
                             out_channels=args.cnn_dim,
                             kernel_size=(args.cnn_window_size, args.emb_dim),
-                            padding=(args.cnn_window_size/2, 0)) # padding is on both sides, so padding=1 means it adds 1 on the left and 1 on the right
+                            padding=(args.cnn_window_size//2, 0)) # padding is on both sides, so padding=1 means it adds 1 on the left and 1 on the right
                 )
         
         bidirectional = False
@@ -197,7 +197,7 @@ class Net(nn.Module):
 
         # result_tensor = method(tensor)
         layer_name = ""
-        if isinstance(method, basestring):
+        if isinstance(method, str):
             layer_name = method
         else:
             layer_name = method.__class__.__name__
@@ -266,7 +266,7 @@ class Net(nn.Module):
 
         if self.model_type == 'crcrnn':
             assert (len(self.cnn) == len(self.rnn))
-            for i in xrange(len(self.cnn)):
+            for i in range(len(self.cnn)):
                 prevConv = conv
                 conv     = self.convWrapper(self.cnn[i], conv)
                 conv     = self.tensorLogger("dropout",         F.dropout(conv, p=self.dropout_rate, training=training))
@@ -282,6 +282,6 @@ class Net(nn.Module):
         pool      = self.tensorLogger("squeeze",         pool.squeeze(1))
 
         outlinear = self.tensorLogger(self.linear,     self.linear(pool))
-        pred_prob = self.tensorLogger("sigmoid",        F.sigmoid(outlinear))
+        pred_prob = self.tensorLogger("sigmoid",        torch.sigmoid(outlinear))
         pred_prob = self.tensorLogger("squeeze",        pred_prob.squeeze())
         return pred_prob
