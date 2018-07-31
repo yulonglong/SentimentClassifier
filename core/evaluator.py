@@ -7,6 +7,9 @@ from core import helper as helper
 from time import time
 from torch.autograd import Variable
 import torch
+import logging
+
+logger = logging.getLogger(__name__)
 
 ####################################################################################################
 ## Evaluator class
@@ -21,11 +24,10 @@ class Evaluator(object):
     It is also responsible to save the model and weights for future use.
     """
 
-    def __init__(self, logger, out_dir, train, dev, test, no_threshold=False, batch_size_eval=256):
+    def __init__(self, out_dir, train, dev, test, no_threshold=False, batch_size_eval=256):
         """
         Constructor to initialize the Evaluator class with the necessary attributes.
         """
-        self.logger = logger
         self.out_dir = out_dir
         self.batch_size_eval = batch_size_eval
 
@@ -190,10 +192,10 @@ class Evaluator(object):
                     curr_best_f1 = f1
             
             # Uncomment below for debugging purposes
-            # self.logger.warning("%d ::>>> threshold: %.5f >>> TP: %5d, FP: %5d, FN: %5d, TN: %5d, F05: %.3f" % (i,possible_threshold,tps,fps,fns,tns,f05))
+            # logger.warning("%d ::>>> threshold: %.5f >>> TP: %5d, FP: %5d, FN: %5d, TN: %5d, F05: %.3f" % (i,possible_threshold,tps,fps,fns,tns,f05))
 
         threshold_time = time() - t0
-        self.logger.info('threshold finding: %is (%.1fm)' % (threshold_time, threshold_time/60.0))
+        logger.info('threshold finding: %is (%.1fm)' % (threshold_time, threshold_time/60.0))
         
         return curr_best_threshold
 
@@ -303,8 +305,8 @@ class Evaluator(object):
             self.best_dev_epoch, self.best_dev_threshold, self.best_test[0], self.best_test[1], self.best_test[2], self.best_test[3], self.best_test[1] + self.best_test[2],
             self.best_test[4], self.best_test[5], self.best_test[6], self.best_test[7]))
 
-        self.logger.info(content.replace("\r\n\r\n","\r\n"))
-        self.logger.info('------------------------------------------------------------------------')
+        logger.info(content.replace("\r\n\r\n","\r\n"))
+        logger.info('------------------------------------------------------------------------')
 
         return content
     
@@ -321,7 +323,7 @@ class Evaluator(object):
             self.best_test[4], self.best_test[5], self.best_test[6],
             self.best_test[7]))
 
-        self.logger.info(content.replace("\r\n\r\n","\r\n"))
+        logger.info(content.replace("\r\n\r\n","\r\n"))
 
         return content
 

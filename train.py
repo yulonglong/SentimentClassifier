@@ -134,7 +134,7 @@ permutation_list = helper.get_permutation_list(args, train_y)
 #
 
 evl = Evaluator(
-    logger, out_dir,
+    out_dir,
     (train_x, train_y, train_filename_y),
     (dev_x, dev_y, dev_filename_y),
     (test_x, test_y, test_filename_y), no_threshold=args.no_threshold, batch_size_eval=args.batch_size_eval)
