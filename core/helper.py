@@ -374,7 +374,7 @@ def do_attention_visualization(attention_weights, test_x, vocab, filename_list, 
                 attention_weights_max = attention_weights[i][j]
         # Encode the normalized weights for the words ignoring the padding
         for j in range(num_words):
-            current_word = reverse_vocab[test_x[i][j]].encode('utf-8', 'ignore')
+            current_word = reverse_vocab[test_x[i][j]]
             if current_word == '<pad>':
                 continue
             word_sequence.append(current_word)
@@ -398,7 +398,7 @@ def do_attention_visualization(attention_weights, test_x, vocab, filename_list, 
             plt.axes([0.025,0.025,0.95,0.95])
             plt.axis('off')
             while j < current_num_words:
-                word = word_sequence[j].decode("utf8")
+                word = word_sequence[j]
                 # If new line, print new line and continue
                 if word == '<newline>':
                     curr_x = 0.005
