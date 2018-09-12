@@ -3,6 +3,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.optim as optim
 import torch.nn.functional as F
+import numpy as np
 
 import math
 
@@ -58,6 +59,7 @@ class Attention(nn.Module):
         wplus = torch.tanh(wplus)
 
         att_w = wplus.matmul(self.v)
+        att_w[att_w == 0] = float('-inf') # Set all the zero values (padding) to be negative infinity, so that after softmax it will be 0
         att_w = F.softmax(att_w,dim=1)
 
         # Save attention weights to be retrieved for visualization
@@ -108,6 +110,26 @@ def tensorLogger(method, result_tensor):
         layer_name = method.__class__.__name__
     
     log('%15s :' % layer_name, result_tensor)
+
+
+def get_sentence_length(ori_sentence):
+    """
+    Method to compute the length of each sentence without the padding
+    """
+    seq_len = np.count_nonzero(ori_sentence.data.cpu().numpy(), axis=1)
+    seq_len = seq_len.tolist()
+    return seq_len
+
+def compute_masked_result(tensor, sentence_len):
+    """
+    Construct mask for padded itemsteps, based on lengths
+    """
+    mask = Variable(torch.zeros(tensor.size())).detach()
+    if tensor.data.is_cuda:
+        mask = mask.cuda()
+    for i in range(len(sentence_len)):  # skip the first sentence
+        mask[i, -sentence_len[i]:] = 1
+    return tensor * mask
 
 def lstmWrapper(methodLstm, inputLstm):
     """
@@ -170,30 +192,12 @@ class GenericNN(nn.Module):
         self.dropout_rate = args.dropout_rate
         self.att_weights = None # Attribute to save attention weights
 
-        self.lookup_table = nn.Embedding(args.vocab_size, args.emb_dim)
+        # Padding idx will disable updating of the word embedding for that particular index by zeroing out the gradient
+        self.lookup_table = nn.Embedding(args.vocab_size, args.emb_dim, padding_idx=vocab['<pad>'])
         if emb_reader:
             self.lookup_table.weight.data = get_pretrained_embedding(self.lookup_table, vocab, emb_reader)
-        
-        self.cnn = None
-        if "c" in self.model_type:
-            self.cnn = ListModule(self, 'cnn_')
-            for i in range(args.cnn_layer):
-                self.cnn.append(nn.Conv2d(in_channels=1,
-                            out_channels=args.cnn_dim,
-                            kernel_size=(args.cnn_window_size, args.emb_dim),
-                            padding=(args.cnn_window_size//2, 0)) # padding is on both sides, so padding=1 means it adds 1 on the left and 1 on the right
-                )
-        
-        if "r" in self.model_type:
-            self.rnn = ListModule(self, 'rnn_')
-            for i in range(args.rnn_layer):
-                rnn_dropout = self.dropout_rate
-                if (i == args.rnn_layer - 1): # If final layer, make dropout 0, Only apply dropout on the first n-1 layers
-                    rnn_dropout = 0
-                if ("b" in args.model_type): # If bidirectional RNN
-                    self.rnn.append(nn.LSTM(args.cnn_dim, args.rnn_dim//2, batch_first=True, dropout=rnn_dropout, bidirectional=True))
-                else:
-                    self.rnn.append(nn.LSTM(args.cnn_dim, args.rnn_dim, batch_first=True, dropout=rnn_dropout))
+        # Set padding embedding to 0
+        self.lookup_table.weight.data[vocab['<pad>']] = 0
 
         self.attention = None
         if self.pooling_type == 'att':
@@ -222,8 +226,30 @@ class GenericNN(nn.Module):
 class CRNN(GenericNN):
     def __init__(self, args, vocab, emb_reader):
         super(CRNN, self).__init__(args, vocab, emb_reader)
+
+        self.cnn = None
+        if "c" in self.model_type:
+            self.cnn = ListModule(self, 'cnn_')
+            for i in range(args.cnn_layer):
+                self.cnn.append(nn.Conv2d(in_channels=1,
+                            out_channels=args.cnn_dim,
+                            kernel_size=(args.cnn_window_size, args.emb_dim),
+                            padding=(args.cnn_window_size//2, 0)) # padding is on both sides, so padding=1 means it adds 1 on the left and 1 on the right
+                )
+        
+        if "r" in self.model_type:
+            self.rnn = ListModule(self, 'rnn_')
+            for i in range(args.rnn_layer):
+                rnn_dropout = self.dropout_rate
+                if (i == args.rnn_layer - 1): # If final layer, make dropout 0, Only apply dropout on the first n-1 layers
+                    rnn_dropout = 0
+                if ("b" in args.model_type): # If bidirectional RNN
+                    self.rnn.append(nn.LSTM(args.cnn_dim, args.rnn_dim//2, batch_first=True, dropout=rnn_dropout, bidirectional=True))
+                else:
+                    self.rnn.append(nn.LSTM(args.cnn_dim, args.rnn_dim, batch_first=True, dropout=rnn_dropout))
      
     def forward(self, sentence, training=False):
+        seq_len  = get_sentence_length(sentence)
         embed    = self.lookup_table(sentence)
         conv     = embed
         
@@ -231,6 +257,7 @@ class CRNN(GenericNN):
             for curr_cnn in self.cnn:
                 prevConv = conv
                 conv     = convWrapper(curr_cnn, conv)
+                conv     = compute_masked_result(conv, seq_len)
                 conv     = F.dropout(conv, p=self.dropout_rate, training=training)
             
         recc     = conv
@@ -239,6 +266,7 @@ class CRNN(GenericNN):
             for curr_rnn in self.rnn:
                 prevRecc = recc
                 recc     = lstmWrapper(curr_rnn, recc)
+                recc     = compute_masked_result(recc, seq_len)
                 recc     = F.dropout(recc, p=self.dropout_rate, training=training)
 
         if self.model_type == 'crcrnn':
@@ -246,8 +274,10 @@ class CRNN(GenericNN):
             for i in range(len(self.cnn)):
                 prevConv = conv
                 conv     = convWrapper(self.cnn[i], conv)
+                conv     = compute_masked_result(conv, seq_len)
                 conv     = F.dropout(conv, p=self.dropout_rate, training=training)
                 conv     = lstmWrapper(self.rnn[i], conv)
+                conv     = compute_masked_result(conv, seq_len)
                 conv     = F.dropout(conv, p=self.dropout_rate, training=training)
             recc = conv
 
