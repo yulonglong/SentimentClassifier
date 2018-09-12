@@ -53,19 +53,17 @@ class Attention(nn.Module):
         self.w.data.uniform_(-stdv, stdv)
         self.v.data.uniform_(-stdv, stdv)
 
-    def forward(self, input):
-        wplus = torch.mm(input.contiguous().view(-1, input.size()[2]), self.w)
-        wplus = wplus.contiguous().view(-1, input.size()[1], self.w.size()[1])
+    def forward(self, dense_sentence):
+        wplus = dense_sentence.matmul(self.w)
         wplus = torch.tanh(wplus)
 
-        att_w = torch.mm(wplus.contiguous().view(-1, wplus.size()[2]), self.v.contiguous().view(self.v.size()[0], 1))
-        att_w = att_w.contiguous().view(-1, wplus.size()[1])
+        att_w = wplus.matmul(self.v)
         att_w = F.softmax(att_w,dim=1)
 
         # Save attention weights to be retrieved for visualization
         self.att_weights = att_w
 
-        after_attention = torch.bmm(att_w.unsqueeze(1), input)
+        after_attention = torch.bmm(att_w.unsqueeze(1), dense_sentence)
 
         return after_attention
 
