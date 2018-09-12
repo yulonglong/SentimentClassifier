@@ -177,7 +177,7 @@ class Net(nn.Module):
             self.lookup_table.weight.data = get_pretrained_embedding(self.lookup_table, vocab, emb_reader)
         
         self.cnn = None
-        if self.model_type == 'cnn' or self.model_type == 'crnn' or self.model_type == 'crcrnn':
+        if "c" in self.model_type:
             self.cnn = ListModule(self, 'cnn_')
             for i in range(args.cnn_layer):
                 self.cnn.append(nn.Conv2d(in_channels=1,
@@ -186,13 +186,16 @@ class Net(nn.Module):
                             padding=(args.cnn_window_size//2, 0)) # padding is on both sides, so padding=1 means it adds 1 on the left and 1 on the right
                 )
         
-        bidirectional = False
-        if (args.is_bidirectional): bidirectional = True
-        self.rnn = None
-        if self.model_type == 'rnn' or self.model_type == 'crnn' or self.model_type == 'crcrnn':
+        if "r" in self.model_type:
             self.rnn = ListModule(self, 'rnn_')
             for i in range(args.rnn_layer):
-                self.rnn.append(nn.LSTM(args.cnn_dim, args.rnn_dim, batch_first=True, bidirectional=bidirectional))
+                rnn_dropout = self.dropout_rate
+                if (i == args.rnn_layer - 1): # If final layer, make dropout 0, Only apply dropout on the first n-1 layers
+                    rnn_dropout = 0
+                if ("b" in args.model_type): # If bidirectional RNN
+                    self.rnn.append(nn.LSTM(args.cnn_dim, args.rnn_dim//2, batch_first=True, dropout=rnn_dropout, bidirectional=True))
+                else:
+                    self.rnn.append(nn.LSTM(args.cnn_dim, args.rnn_dim, batch_first=True, dropout=rnn_dropout))
 
         self.attention = None
         if self.pooling_type == 'att':
@@ -218,7 +221,7 @@ class Net(nn.Module):
         embed    = self.lookup_table(sentence)
         conv     = embed
         
-        if self.model_type == 'cnn' or self.model_type == 'crnn':
+        if "c" in self.model_type:
             for curr_cnn in self.cnn:
                 prevConv = conv
                 conv     = convWrapper(curr_cnn, conv)
@@ -226,7 +229,7 @@ class Net(nn.Module):
             
         recc     = conv
 
-        if self.model_type == 'rnn' or self.model_type == 'crnn':
+        if "r" in self.model_type:
             for curr_rnn in self.rnn:
                 prevRecc = recc
                 recc     = lstmWrapper(curr_rnn, recc)
@@ -242,7 +245,7 @@ class Net(nn.Module):
                 conv     = F.dropout(conv, p=self.dropout_rate, training=training)
             recc = conv
 
-        if self.pooling_type == 'att':
+        if "att" in self.pooling_type:
             pool      = self.attention(recc)
             self.att_weights = self.attention.att_weights # Save attention weights
         else:

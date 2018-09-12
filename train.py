@@ -41,7 +41,6 @@ parser.add_argument("-eb", "--emb-binary", dest="emb_binary_path", type=str, met
 parser.add_argument("--epochs", dest="epochs", type=int, metavar='<int>', default=50, help="Number of epochs (default=50)")
 parser.add_argument("--seed", dest="seed", type=int, metavar='<int>', default=1337, help="Random seed (default=1337)")
 parser.add_argument("--shuffle-seed", dest="shuffle_seed", type=int, metavar='<int>', default=1337, help="Random shuffle seed (default=1337)")
-parser.add_argument("-bi", "--bidirectional", dest="is_bidirectional", action='store_true', help="Flag to enable bidirectional RNN (i.e., only process dataset)")
 
 parser.add_argument("-trll", "--train-length-limit", dest="train_length_limit", type=int, metavar='<int>', default=0, help="The maximum length of any training instance, longer instances will get thrown away (default=0, use all)")
 parser.add_argument("-sep", "--save-every-epoch", dest="is_save_every_epoch", action='store_true', help="Flag to save complete model weights every epoch (default=False)")
@@ -74,8 +73,13 @@ sys.stderr = open(out_dir + '/stderr.txt', 'w')
 # Either of them must be set
 assert ((args.data_binary_path) or (args.train_path and args.dev_path and args.test_path))
 
-valid_model_type =  {'crnn', 'cnn', 'rnn', 'crcrnn'}
-model_type_binary = {'crnn', 'cnn', 'rnn', 'crcrnn'}
+valid_model_type =  {
+    'crnn',
+    'cnn',
+    'rnn',
+    'cbrnn',
+    'brnn',
+    'crcrnn'}
 
 assert args.model_type in valid_model_type
 assert args.algorithm in {'rmsprop', 'adam'}
