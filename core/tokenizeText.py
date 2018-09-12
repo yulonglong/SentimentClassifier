@@ -23,7 +23,7 @@ def tokenize_dataset(file_path, output_path, to_lower=True):
     """
     Simple tokenizer for the text before training word2vec
     """
-    from core import text_cleaner as text_cleaner
+    import text_cleaner as text_cleaner
     import codecs
     
     output = open(output_path,"w")

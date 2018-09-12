@@ -89,3 +89,28 @@ class W2VEmbReader:
     def get_emb_dim(self):
         return self.emb_dim
     
+
+# Static function
+def load_embedding_reader(args):
+    """
+    Load embedding_reader object from binary file
+    or
+    Create embedding_reader object from the text file containing the embedding numbers for each word (word2vec output)
+    """
+    import pickle as pk
+    emb_reader = None
+    if args.emb_binary_path:
+        logger.info("Loading binary embedding data...")
+        with open(args.emb_binary_path, 'rb') as emb_data_file:
+            emb_reader = pk.load(emb_data_file)
+        logger.info("Loading binary embedding data completed!")
+    else:
+        if args.emb_path:
+            logger.info("Loading embedding data...")
+            emb_reader = W2VEmbReader(args.emb_path, emb_dim=args.emb_dim)
+            # if the seed starts with "10", which means first iteration and gpu num 0, then save
+            # if (args.seed // 100 == 10):
+            with open(args.out_dir_path + '/data/emb_reader_instance_'+ str(args.emb_dim) +'.pkl', 'wb') as emb_data_file:
+                pk.dump(emb_reader, emb_data_file) # Note that saving an extremely big file/vocabulary will result in pickle memory error
+            logger.info("Loading embedding data completed!")
+    return emb_reader
