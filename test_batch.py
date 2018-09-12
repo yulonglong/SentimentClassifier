@@ -150,6 +150,9 @@ if (args.is_attention_visualize):
     for idx, _ in enumerate(test_x):
         threadCollection[idx] = CreateAttentionVizThread(attention_weights[idx], test_x[idx], vocab, test_filename_y[idx], score_list[idx], output_foldername=output_foldername)
         threadCollection[idx].start()
+    
+    for idx, _ in enumerate(test_x):
+        threadCollection[idx].join()
 
     logger.info("Attention visualization completed!")
 
