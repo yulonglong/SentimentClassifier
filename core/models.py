@@ -154,7 +154,7 @@ class ListModule(object):
             raise IndexError('Out of bound')
         return getattr(self.module, self.prefix + str(i))
 
-class Net(nn.Module):
+class GenericNN(nn.Module):
     def __init__(self, args, vocab, emb_reader):
         """
         :param args:
@@ -164,9 +164,7 @@ class Net(nn.Module):
         :param emb_reader:
             Embedding reader class which handles initialization of pre-trained word embeddings
         """
-        super(Net, self).__init__()
-        self.is_debug = False
-        self.batch_number = None
+        super(GenericNN, self).__init__()
         self.model_type = args.model_type
         self.pooling_type = args.pooling_type
         self.dropout_rate = args.dropout_rate
@@ -203,7 +201,7 @@ class Net(nn.Module):
 
         self.linear = nn.Linear(args.rnn_dim, 1)
 
-    def forward(self, sentence, training=False, batch_number=None):
+    def forward(self, sentence, training=False):
         """
         :param sentence:
                 input sentence is in size of [N, W]
@@ -216,8 +214,16 @@ class Net(nn.Module):
         :return:
                 a tensor [C], where C is the number of classes
         """
-        self.batch_number = batch_number
 
+        pass
+
+
+
+class CRNN(GenericNN):
+    def __init__(self, args, vocab, emb_reader):
+        super(CRNN, self).__init__(args, vocab, emb_reader)
+     
+    def forward(self, sentence, training=False):
         embed    = self.lookup_table(sentence)
         conv     = embed
         

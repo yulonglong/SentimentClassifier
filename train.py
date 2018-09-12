@@ -74,12 +74,15 @@ sys.stderr = open(out_dir + '/stderr.txt', 'w')
 assert ((args.data_binary_path) or (args.train_path and args.dev_path and args.test_path))
 
 valid_model_type =  {
-    'crnn',
     'cnn',
     'rnn',
-    'cbrnn',
     'brnn',
-    'crcrnn'}
+    'crnn',
+    'cbrnn',
+    'crcrnn',
+    'cwresrnn',
+    'cwresbrnn',
+}
 
 assert args.model_type in valid_model_type
 assert args.algorithm in {'rmsprop', 'adam'}
@@ -204,7 +207,15 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from core.models import Net
+
+if (args.model_type == "cnn" or
+    args.model_type == "rnn" or
+    args.model_type == "brnn" or
+    args.model_type == "cbrnn" or
+    args.model_type == "crcrnn" or
+    args.model_type == "cwresrnn" or
+    args.model_type == "cwresbrnn"):
+    from core.models import CRNN as Net
 
 torch.manual_seed(args.seed)
 if torch.cuda.is_available():
@@ -276,7 +287,7 @@ for ii in range(args.epochs):
             
         pytorch_train_x, pytorch_train_y = Variable(pytorch_train_x), Variable(pytorch_train_y)
         optimizer.zero_grad()
-        outputs = model(pytorch_train_x, training=True, batch_number=idx)
+        outputs = model(pytorch_train_x, training=True)
         if not args.no_class_weight: criterion.weight = pytorch_weight # Assign weights to the training data
         loss = criterion(outputs, pytorch_train_y)
         loss.backward()
