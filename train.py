@@ -73,7 +73,7 @@ sys.stderr = open(out_dir + '/stderr.txt', 'w')
 # Either of them must be set
 assert ((args.data_binary_path) or (args.train_path and args.dev_path and args.test_path))
 
-valid_model_type =  {
+valid_model_type = {
     'cnn',
     'rnn',
     'brnn',
@@ -82,6 +82,9 @@ valid_model_type =  {
     'crcrnn',
     'cwresrnn',
     'cwresbrnn',
+    'gcnn',
+    'gcrnn',
+    'gcbrnn',
 }
 
 assert args.model_type in valid_model_type
@@ -210,12 +213,15 @@ from torch.autograd import Variable
 
 if (args.model_type == "cnn" or
     args.model_type == "rnn" or
+    args.model_type == "crnn" or
     args.model_type == "brnn" or
     args.model_type == "cbrnn" or
     args.model_type == "crcrnn" or
     args.model_type == "cwresrnn" or
     args.model_type == "cwresbrnn"):
     from core.models import CRNN as Net
+elif ("gcnn" in args.model_type or "gcrnn" in args.model_type or "gcbrnn" in args.model_type):
+    from core.models import GatedNN as Net
 
 torch.manual_seed(args.seed)
 if torch.cuda.is_available():

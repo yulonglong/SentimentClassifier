@@ -292,3 +292,87 @@ class CRNN(GenericNN):
         pred_prob = torch.sigmoid(outlinear)
         pred_prob = pred_prob.squeeze()
         return pred_prob
+
+
+
+class GatedNN(GenericNN):
+    def __init__(self, args, vocab, emb_reader):
+        super(GatedNN, self).__init__(args, vocab, emb_reader)
+        
+        self.cnn_1 = ListModule(self, 'cnn1_')
+        for i in range(args.cnn_layer):
+            self.cnn_1.append(nn.Conv2d(in_channels=1,
+                        out_channels=args.cnn_dim,
+                        kernel_size=(args.cnn_window_size, args.emb_dim),
+                        padding=(args.cnn_window_size//2, 0)) # padding is on both sides, so padding=1 means it adds 1 on the left and 1 on the right
+            )
+
+        self.cnn_2 = ListModule(self, 'cnn2_')
+        for i in range(args.cnn_layer):
+            self.cnn_2.append(nn.Conv2d(in_channels=1,
+                        out_channels=args.cnn_dim,
+                        kernel_size=(args.cnn_window_size, args.emb_dim),
+                        padding=(args.cnn_window_size//2, 0)) # padding is on both sides, so padding=1 means it adds 1 on the left and 1 on the right
+            )
+        assert(len(self.cnn_1) == len(self.cnn_2))
+        
+        if ("r" in self.model_type):
+            self.rnn_1 = ListModule(self, 'rnn1_')
+            for i in range(args.rnn_layer):
+                rnn_dropout = self.dropout_rate
+                if (i == args.rnn_layer - 1): # If final layer, make dropout 0, Only apply dropout on the first n-1 layers
+                    rnn_dropout = 0
+                
+                if ("brnn" in self.model_type): # If bidirectional RNN
+                    self.rnn_1.append(nn.LSTM(args.cnn_dim, args.rnn_dim//2, batch_first=True, dropout=rnn_dropout, bidirectional=True))
+                else:
+                    self.rnn_1.append(nn.LSTM(args.cnn_dim, args.rnn_dim, batch_first=True, dropout=rnn_dropout))
+
+            self.rnn_2 = ListModule(self, 'rnn2_')
+            for i in range(args.rnn_layer):
+                rnn_dropout = self.dropout_rate
+                if (i == args.rnn_layer - 1): # If final layer, make dropout 0, Only apply dropout on the first n-1 layers
+                    rnn_dropout = 0
+                
+                if ("brnn" in self.model_type): # If bidirectional RNN
+                    self.rnn_2.append(nn.LSTM(args.cnn_dim, args.rnn_dim//2, batch_first=True, dropout=rnn_dropout, bidirectional=True))
+                else:
+                    self.rnn_2.append(nn.LSTM(args.cnn_dim, args.rnn_dim, batch_first=True, dropout=rnn_dropout))
+
+            assert(len(self.rnn_1) == len(self.rnn_2))
+
+
+    def forward(self, sentence, lab=None, training=False):
+        # sentence [batch_size, sentence_len]
+        # lab [batch_size, num_lab]
+        seq_len  = get_sentence_length(sentence)
+        embed    = self.lookup_table(sentence) # Apply lookup table to translate indices to word embeddings
+        conv     = embed # [batch_size, sentence_len, emb_dim]
+        
+        for i in range(len(self.cnn_1)):
+            prevConv = conv
+            conv     = F.dropout(conv, p=self.dropout_rate, training=training) 
+            conv1    = convWrapper(self.cnn_1[i], conv) # [batch_size, sentence_len, cnn_dim]
+            conv1    = compute_masked_result(conv1, seq_len)
+            conv2    = convWrapper(self.cnn_2[i], conv) # [batch_size, sentence_len, cnn_dim]
+            conv     = conv1 * torch.sigmoid(conv2)
+            conv     = torch.add(prevConv, conv)
+        recc     = conv
+        
+        if ("r" in self.model_type):
+            for i in range(len(self.rnn_1)):
+                prevRecc = recc
+                recc     = F.dropout(recc, p=self.dropout_rate, training=training)
+                recc1    = lstmWrapper(self.rnn_1[i], recc) # [batch_size, sentence_len, rnn_dim]
+                recc1    = compute_masked_result(recc1, seq_len)
+                recc2    = lstmWrapper(self.rnn_2[i], recc) # [batch_size, sentence_len, cnn_dim]
+                recc     = recc1 * torch.sigmoid(recc2)
+                recc     = torch.add(prevRecc, recc)
+
+        att      = self.attention(recc) # [batch_size, 1, rnn_dim]
+        att      = att.squeeze(1) # [batch_size, rnn_dim]
+       
+        outlinear = self.linear(att)
+        pred_prob = torch.sigmoid(outlinear)
+        pred_prob = pred_prob.squeeze()
+        return pred_prob
