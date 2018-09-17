@@ -25,7 +25,9 @@ parser.add_argument("-t", "--model-type", dest="model_type", type=str, metavar='
 parser.add_argument("-p", "--pooling-type", dest="pooling_type", type=str, metavar='<str>', default='meanot', help="Pooling type (meanot|att) (default=meanot)")
 parser.add_argument("-u", "--rec-unit", dest="recurrent_unit", type=str, metavar='<str>', default='lstm', help="Recurrent unit type (lstm|gru|simple) (default=lstm)")
 parser.add_argument("-a", "--algorithm", dest="algorithm", type=str, metavar='<str>', default='rmsprop', help="Optimization algorithm (rmsprop|sgd|adagrad|adadelta|adam|adamax) (default=rmsprop)")
-parser.add_argument("-lr", "--learning-rate", dest="learning_rate", type=float, metavar='<float>', default=0.001, help="Learning rate in rmsprop (default=0.001)")
+parser.add_argument("-lr", "--learning-rate", dest="learning_rate", type=float, metavar='<float>', default=0.001, help="Learning rate in optimizer (default=0.001)")
+parser.add_argument("-wd", "--weight-decay", dest="weight_decay", type=float, metavar='<float>', default=0.0, help="Weight decay in optimizer (default=0.0)")
+
 parser.add_argument("-e", "--embdim", dest="emb_dim", type=int, metavar='<int>', default=50, help="Embeddings dimension (default=50)")
 parser.add_argument("-cl","--cnn-layer", dest="cnn_layer", type=int, metavar='<int>', default=1, help="Number of CNN layer (default=1)")
 parser.add_argument("-c", "--cnndim", dest="cnn_dim", type=int, metavar='<int>', default=0, help="CNN output dimension. '0' means no CNN layer (default=0)")

@@ -17,7 +17,7 @@ def get_optimizer(args, params):
     
     import torch.optim as optim
     if args.algorithm == 'rmsprop':
-        optimizer = optim.RMSprop(params, lr=args.learning_rate)
+        optimizer = optim.RMSprop(params, lr=args.learning_rate, weight_decay=args.weight_decay)
         # optimizer = optim.RMSprop(params, lr=args.learning_rate, alpha=0.9, eps=1e-06, weight_decay=0, momentum=0, centered=False)
     elif args.algorithm == 'adam':
         optimizer = optim.Adam(params, lr=args.learning_rate)
