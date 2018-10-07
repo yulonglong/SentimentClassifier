@@ -19,9 +19,9 @@ def sentimentEvaluate():
 
         flash(Markup('<b>Movie Review</b>:<br>{}'.format(movie_review)))
         if (percentScore >= 50.0):
-            flash(Markup('<b>Prediction</b>: <span style="color: green;">Positive - {0:.2f}%</span>'.format(percentScore)))
+            flash(Markup('<b>Prediction</b>: <span style="color: green;">Positive: {0:.2f}%</span>'.format(percentScore)))
         else:
-            flash(Markup('<b>Prediction</b>: <span style="color: red;">Negative - {0:.2f}%</span>'.format(percentScore)))
+            flash(Markup('<b>Prediction</b>: <span style="color: red;">Negative: {0:.2f}%</span>'.format(percentScore)))
         flash(Markup('<b>PDF Visualization:</b>: <a href=/pdf/{}>Click here</a>'.format(pdf_filepath)))
         return redirect('/')
 
