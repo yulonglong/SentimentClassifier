@@ -428,7 +428,7 @@ def do_attention_visualization(attention_weights, test_x, vocab, filename_list, 
                 ymin, ymax = plt.ylim()
                 xmin, xmax = plt.xlim()
                 plt.text(
-                    xmin, ymax, 'ID : %s     Prediction : %s    Prediction score: %.4f%%' %
+                    xmin, ymax, 'ID : %s     Prediction : %s    Prediction score: %.2f%%' %
                     (curr_filename, pred_string, scaled_pred) , fontsize=30, style='normal',
                     bbox={'facecolor':'yellow', 'alpha':1.0, 'pad':10})
 

@@ -1,0 +1,25 @@
+<html>
+    <head>
+        <title>Neural Sentiment Predictor - Yulonglong.com</title>
+    </head>
+    <body>
+        <div>
+            Neural Sentiment Predictor:
+            <a href="/">Try now</a>
+            <a href="https://github.com/yulonglong/SentimentClassifier">GitHub</a>
+            <a href="https://github.com/yulonglong/SentimentClassifier/releases/download/v1.4/neural-sentiment-classification.pdf">Report</a>
+            <a href="https://yulonglong.com/#portfolio">Other Projects</a>
+        </div>
+        <hr>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </body>
+</html>

@@ -7,3 +7,8 @@ nltk==3.3.0
 pydot==1.2.4
 h5py==2.8.0
 matplotlib==2.2.2
+
+# The requirements below is for the flask web demo
+flask==1.0.2
+wtforms==2.2.1
+flask-wtf==0.14.2
