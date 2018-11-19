@@ -1,25 +1,66 @@
 <html>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
     <head>
         <title>Neural Sentiment Predictor - Yulonglong.com</title>
     </head>
     <body>
-        <div>
-            Neural Sentiment Predictor:
-            <a href="/">Try now</a>
-            <a href="https://github.com/yulonglong/SentimentClassifier">GitHub</a>
-            <a href="https://github.com/yulonglong/SentimentClassifier/releases/download/v1.4/neural-sentiment-classification.pdf">Report</a>
-            <a href="https://yulonglong.com/#portfolio">Other Projects</a>
+        <!-- start navbar using bootstrap -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <a class="navbar-brand" href="https://yulonglong.com">Yulonglong.com</a>
+            
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div id="navbarSupportedContent" class="collapse navbar-collapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Neural Sentiment Predictor Demo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/yulonglong/SentimentClassifier">GitHub</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/yulonglong/SentimentClassifier/releases/download/v1.4/neural-sentiment-classification.pdf">Report</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://yulonglong.com/#portfolio">Other Projects</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        
+        <!-- end navbar using bootstrap -->
+        
+        <div class="jumbotron">
+            <div class="container">
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <h3><b>Result</b></h3>
+                <ul>
+                    {% for message in messages %}
+                    <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <h4>Please copy and paste free-text movie review below:</h4>
+                {% endif %}
+                {% endwith %}
+            </div>
         </div>
-        <hr>
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <ul>
-            {% for message in messages %}
-            <li>{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
+        <div class="container">
+            {% block content %}{% endblock %}
+            <hr>
+            <footer>
+                <p>&copy; 2018 yulonglong.com</p>
+            </footer>
+        </div> <!-- /container -->
+
+        <script src="js/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="js/ie10-viewport-bug-workaround.js"></script>
     </body>
 </html>

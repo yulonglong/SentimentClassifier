@@ -5,6 +5,18 @@ from web_flask.evaluate_form import EvaluateForm
 from flask import render_template, flash, redirect, Markup
 import re
 
+@app.route('/js/<path:filename>')
+def send_js(filename):
+    template_path = os.path.join(os.getcwd(), 'web_flask/templates/js')
+    print (template_path)
+    return send_from_directory(template_path, filename)
+
+@app.route('/css/<path:filename>')
+def send_css(filename):
+    template_path = os.path.join(os.getcwd(), 'web_flask/templates/css')
+    print (template_path)
+    return send_from_directory(template_path, filename)
+
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
 def sentimentEvaluate():
@@ -22,7 +34,7 @@ def sentimentEvaluate():
             flash(Markup('<b>Prediction</b>: <span style="color: green;">Positive: {0:.2f}%</span>'.format(percentScore)))
         else:
             flash(Markup('<b>Prediction</b>: <span style="color: red;">Negative: {0:.2f}%</span>'.format(percentScore)))
-        flash(Markup('<b>PDF Visualization:</b>: <a href=/pdf/{}>Click here</a>'.format(pdf_filepath)))
+        flash(Markup('<b>PDF Visualization:</b> <a href=/pdf/{}>Click here</a>'.format(pdf_filepath)))
         return redirect('/')
 
     return render_template('evaluate.html', form=form)
