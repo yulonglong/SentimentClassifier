@@ -26,7 +26,7 @@ if [ ! -f word2vec/vectors/imdb_${embedding_size}d.w2v.txt ]; then
         fi
         echo "Tokenizing text..."
         # Tokenize text
-        python core/tokenizeText.py -in word2vec/vectors/${combined_text_name} -out word2vec/vectors/${combined_tokenized_text_name}
+        python3 core/tokenizeText.py -in word2vec/vectors/${combined_text_name} -out word2vec/vectors/${combined_tokenized_text_name}
     fi
     # Train word2vec
     echo "Training word2vec"

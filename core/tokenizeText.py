@@ -44,7 +44,7 @@ def tokenize_dataset(file_path, output_path, to_lower=True):
                     if text_cleaner.isContainDigit(word):
                         output.write('<num>')
                     else:
-                        output.write((word).encode("utf8"))
+                        output.write(word)
                     output.write(' ')
 
                 output.write('\n')
