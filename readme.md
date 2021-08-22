@@ -1,5 +1,8 @@
 Sentiment Classification of Movie Reviews
 ===================================
+
+*Last updated: 2021-Aug-22*
+
 Neural Network model to classify whether a movie review is positive or negative. Movie reviews are written in English and obtained from IMDB.
 
 Please contact me at sky@u.nus.edu if you have any questions.
@@ -18,8 +21,8 @@ This repository has been updated with more recent version of PyTorch and other l
 - `./run_test` (Test model on CPU)
 
 **Requirements and Environment:**  
-- Ubuntu 16.04  
-- Python 3.5.2  
+- Ubuntu 20.04.2  
+- Python 3.8.10 (default on Ubuntu 20.04)  
 
 **Python Library Required (requirements.txt):**  
 - torch (PyTorch)  
@@ -45,7 +48,7 @@ If you are running a UNIX based machine, you can run the shell script `./setup.s
 	- i.e., execute the following command `cd data && ./run.sh`  
 	- The data will be automatically downloaded and preprocessed into training, validation, and test set
 	- If you do not have java development kit (JDK) installed, please install by running this command:
-		- `sudo apt-get update && sudo apt-get install openjdk-8-jdk`
+		- `sudo apt update && sudo apt install default-jdk`
 
 **To train the model**
 - Execute `./run_train.sh <GPU_Number> <GPU_Name>` , e.g., `$> ./run_train.sh 0 TITANX`  
