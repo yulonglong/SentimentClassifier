@@ -4,7 +4,7 @@
 
 echo "WARNING: This script assumes you already have pip and java JDK installed"
 echo "If not, please execute the following command:"
-echo "sudo apt-get update && sudo apt-get install python-pip openjdk-8-jdk"
+echo "sudo apt update && sudo apt install python3-pip default-jdk"
 
 pip3 install -r requirements.txt --user
 python3 -m nltk.downloader 'punkt'
