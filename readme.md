@@ -1,7 +1,7 @@
 Sentiment Classification of Movie Reviews
 ===================================
 
-*Last updated: 2021-Aug-22*
+*Last updated: 2022-May-21*
 
 Neural Network model to classify whether a movie review is positive or negative. Movie reviews are written in English and obtained from IMDB.
 
@@ -14,15 +14,15 @@ Stable release with pdf report is in https://github.com/yulonglong/SentimentClas
 This repository has been updated with more recent version of PyTorch and other libraries, please visit tag v1.4 to replicate results reported in the pdf documentation.
 
 **TLDR:**  
-- Assuming you are on Ubuntu 16.04 with Python 3.5, open terminal  
+- Assuming you are on Ubuntu 22.04 with Python 3.10.4, open terminal  
 - `./setup.sh` (Install packages) or `./setup_global.sh` (To install packages globally with sudo access)
 - `cd data && ./run.sh && cd ..` (Download and Prepare dataset)
 - `./run_train.sh 0 GTX1070` (Train model on GPU 0, a GTX1070)
 - `./run_test` (Test model on CPU)
 
 **Requirements and Environment:**  
-- Ubuntu 20.04.2  
-- Python 3.8.10 (default on Ubuntu 20.04)  
+- Ubuntu 22.04 
+- Python 3.10.4 (default on Ubuntu 22.04)  
 
 **Python Library Required (requirements.txt):**  
 - torch (PyTorch)  
@@ -34,7 +34,7 @@ This repository has been updated with more recent version of PyTorch and other l
 - pydot  
 - matplotlib  
 
-Python libraries above can be installed via `pip -r requirements.txt`.
+Python libraries above can be installed via `pip3 -r requirements.txt`.
 
 **Python libraries setup:**
 
@@ -66,3 +66,8 @@ If you are running a UNIX based machine, you can run the shell script `./setup.s
 	- `-m`  : model path, the path to the best model saved during training
 	- `-ts` : test path, the path to the text file containing the movie review to be evaluated
 - Sample command : `python test.py -v saved_model/vocab_v50000.pkl -m saved_model/best_model_weights.h5 -ts data/aclImdb/train/unsup/74_0.txt`
+
+**To run web demo**
+- For quick testing: `python3 web_demo.py`
+- For production (using pm2): `pm2 start web_demo.py --name sentiment_classifier --interpreter python3`
+- Visit the web UI at `127.0.0.1:5021`
