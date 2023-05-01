@@ -9,6 +9,6 @@ h5py==3.6.0
 matplotlib==3.5.2
 
 # The requirements below is for the flask web demo
-flask==2.1.2
+flask==2.3.2
 wtforms==3.0.1
 flask-wtf==1.0.1
